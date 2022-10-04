@@ -216,15 +216,13 @@ Usage:  filebak rm [task_id]
 
 ### 类
 
-| Name         | Description                                                  |
-| ------------ | ------------------------------------------------------------ |
-| Filter       | 用户自定义的备份规则：文件路径、文件名、文件类型、时间区间等 |
-| Packer       | 用于打包文件                                                 |
-| Unpacker     | 解包                                                         |
-| Compressor   | 用于压缩文件                                                 |
-| Decompressor | 解压缩                                                       |
-| AES          | 加解密                                                       |
-| TaskManager  | 任务管理：新建、停止、继续、删除等                           |
+| Name        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| Filter      | 用户自定义的备份规则：文件路径、文件名、文件类型、时间区间等 |
+| Packer      | 用于打包/解包文件                                            |
+| Compressor  | 用于压缩/解压文件                                            |
+| AES         | 加解密                                                       |
+| TaskManager | 任务管理：新建、停止、继续、删除等                           |
 
 #### 1. Filter
 
@@ -244,43 +242,21 @@ time_range	时间区间
 bool check()		判断文件是否满足用户自定义的规则
 ```
 
-
-
 #### 2. Packer
 
-成员变量
+打包、解包
 
-```
-```
+#### 3. Compressor
 
-成员函数
+Huffman编码压缩、解压
 
-```
-```
+#### 4. AES
 
+加密、解密(OpenSSL)
 
+#### 5. TaskManager
 
-#### 3. Unpacker
-
-
-
-#### 4. Compressor
-
-
-
-#### 5. Decompressor
-
-
-
-#### 6. AES
-
-
-
-#### 7. TaskManager
-
-
-
-
+备份任务管理
 
 
 
@@ -296,7 +272,7 @@ bool check()		判断文件是否满足用户自定义的规则
 >
 > `~`package/default
 
-
+<img src="images/class_diagram.png" alt="image-20221004000614297" style="zoom:67%;" />
 
 
 
