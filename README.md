@@ -222,6 +222,7 @@ Usage:  filebak rm [task_id]
 | Packer      | 用于打包/解包文件                                            |
 | Compressor  | 用于压缩/解压文件                                            |
 | AES         | 加解密                                                       |
+| Task        | 备份/还原任务                                                |
 | TaskManager | 任务管理：新建、停止、继续、删除等                           |
 
 #### 1. Filter
@@ -254,9 +255,13 @@ Huffman编码压缩、解压
 
 加密、解密(OpenSSL)
 
-#### 5. TaskManager
+#### 5. Task
 
-备份任务管理
+备份/还原任务
+
+#### 6. TaskManager
+
+任务管理
 
 
 
@@ -272,7 +277,7 @@ Huffman编码压缩、解压
 >
 > `~`package/default
 
-<img src="images/class_diagram.png" alt="image-20221004000614297" style="zoom:67%;" />
+
 
 
 
