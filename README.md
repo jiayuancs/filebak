@@ -277,7 +277,7 @@ Huffman编码压缩、解压
 >
 > `~`package/default
 
-
+<img src="images/class_diagram.png" alt="image-20221004000614297" style="zoom:67%;" />
 
 
 
