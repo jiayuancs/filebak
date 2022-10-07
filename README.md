@@ -218,6 +218,7 @@ Usage:  filebak rm [task_id]
 
 | Name        | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
+| FileBase      | 文件读写 |
 | Filter      | 用户自定义的备份规则：文件路径、文件名、文件类型、时间区间等 |
 | Packer      | 用于打包/解包文件                                            |
 | Compressor  | 用于压缩/解压文件                                            |
@@ -225,7 +226,9 @@ Usage:  filebak rm [task_id]
 | Task        | 备份/还原任务                                                |
 | TaskManager | 任务管理：新建、停止、继续、删除等                           |
 
-#### 1. Filter
+#### 1. FileBase
+
+#### 2. Filter
 
 成员变量
 
@@ -243,23 +246,23 @@ time_range	时间区间
 bool check()		判断文件是否满足用户自定义的规则
 ```
 
-#### 2. Packer
+#### 3. Packer
 
 打包、解包
 
-#### 3. Compressor
+#### 4. Compressor
 
 Huffman编码压缩、解压
 
-#### 4. AES
+#### 5. AES
 
 加密、解密(OpenSSL)
 
-#### 5. Task
+#### 6. Task
 
 备份/还原任务
 
-#### 6. TaskManager
+#### 7. TaskManager
 
 任务管理
 
