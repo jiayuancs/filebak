@@ -9,9 +9,8 @@
 #include <filesystem>
 
 #include <iostream>
-#define MAX_PACK_PATH_LEN 256
-
-
+#define MAX_PACK_PATH_LEN 256  // 最大路径长度
+#define BLOCK_BUFFER_SIZE 4096 // 读写文件的缓冲区大小
 
 enum FileType : char
 {
@@ -31,7 +30,7 @@ struct FileHeader
     // 软链接路径 或 硬链接路径
     // 对于硬链接，只有其链接目标在备份文件范围内该项才有效
     // 反之，则备份时将其改为链接目标类型文件
-    char linkname[MAX_PACK_PATH_LEN];     
+    char linkname[MAX_PACK_PATH_LEN];
 };
 
 #define FILE_HEADER_SIZE (sizeof(FileHeader))
@@ -51,20 +50,17 @@ public:
     FileBase(std::filesystem::path filepath_);
     ~FileBase();
 
-
     // void CreateAndOpenFile();
     // void CreateFile(string filepath_);
     bool OpenFile(std::ios_base::openmode mode_);
 
-
     // 从当前文件中读一个文件头信息
     FileHeader ReadFileHeader();
-    
+
     size_t GetFileSize();
     FileType GetFileType();
     FileHeader GetFileHeader();
     void SetRelativePath(std::string filepath_);
-
 
     // 用于测试
     void printTime(std::string dec, const struct timespec &tim)

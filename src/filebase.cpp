@@ -82,7 +82,8 @@ FileHeader FileBase::ReadFileHeader()
     return fileheader;
 }
 
-size_t FileBase::GetFileSize(){
+size_t FileBase::GetFileSize()
+{
     return fileheader.metadata.st_size;
 }
 

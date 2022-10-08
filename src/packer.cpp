@@ -90,6 +90,7 @@ bool Packer::Pack()
     DfsFile(bak_file, std::filesystem::relative(root_path, root_path.parent_path()));
 
     bak_file.close();
+    return true;
 }
 
 bool Packer::Unpack()
@@ -103,7 +104,7 @@ bool Packer::Unpack()
     root_path.assign(buf_pack_path);
 
     // 切换工作目录
-    if(!std::filesystem::exists(root_path.parent_path()))
+    if (!std::filesystem::exists(root_path.parent_path()))
         std::filesystem::create_directories(root_path.parent_path());
     std::filesystem::current_path(root_path.parent_path());
     std::cout << "工作目录: " << std::filesystem::current_path() << std::endl;
@@ -115,21 +116,23 @@ bool Packer::Unpack()
         // 读文件头
         fileheader = bak_file.ReadFileHeader();
         std::cout << fileheader.name << std::endl;
-        
+
         FileBase file(fileheader);
 
         // 只有普通文件需要复制文件内容到新文件中
-        if(file.GetFileType()!=FILE_TYPE_NORMAL)
+        if (file.GetFileType() != FILE_TYPE_NORMAL)
             continue;
 
         file.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc);
         size_t file_size = file.GetFileSize();
-        while(file_size >= BLOCK_BUFFER_SIZE){
+        while (file_size >= BLOCK_BUFFER_SIZE)
+        {
             bak_file.read(buf, BLOCK_BUFFER_SIZE);
             file.write(buf, BLOCK_BUFFER_SIZE);
             file_size -= BLOCK_BUFFER_SIZE;
         }
-        if(file_size){
+        if (file_size)
+        {
             bak_file.read(buf, file_size);
             file.write(buf, file_size);
         }
@@ -137,4 +140,5 @@ bool Packer::Unpack()
     }
 
     bak_file.close();
+    return true;
 }

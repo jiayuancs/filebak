@@ -1,5 +1,4 @@
 #ifndef INCLUDE_FILTER_H_
 #define INCLUDE_FILTER_H_
 
-
-#endif  // INCLUDE_FILTER_H_
+#endif // INCLUDE_FILTER_H_
