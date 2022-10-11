@@ -3,12 +3,13 @@ using namespace std;
 
 int main(){
 
-    string root_path = "/home/leo/code/vscode/filebak/test";
-    string bak_path = "/home/leo/code/vscode/filebak/a.bak";
-    Packer packer(root_path, bak_path);
+    Filter filter;
+    string root_path = "/home/leo/code/vscode/test_aes";
+    string bak_path = "/home/leo/code/vscode/test_aes.bak";
+    Packer packer(root_path, bak_path, filter);
 
-    packer.Pack();
-    // packer.Unpack();
+    // packer.Pack();
+    packer.Unpack();
 
     return 0;
 }

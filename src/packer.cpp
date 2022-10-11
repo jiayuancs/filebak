@@ -1,9 +1,10 @@
 #include "packer.h"
 
-Packer::Packer(std::string root_path_, std::string pack_path_)
+Packer::Packer(std::string root_path_, std::string pack_path_, const Filter& filter_)
 {
     root_path.assign(root_path_);
     bak_path.assign(pack_path_);
+    filter = filter_;
 }
 
 Packer::~Packer()
@@ -16,6 +17,10 @@ void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
     std::cout << "DFS cur_path: " << cur_path.string() << std::endl;
     FileBase file(cur_path);
     FileHeader fileheader = file.GetFileHeader();
+
+    // 判断该文件是否满足过滤规则
+    if(!filter.check(fileheader))
+        return;
 
     char buf[BLOCK_BUFFER_SIZE] = {0};
     switch (file.GetFileType())

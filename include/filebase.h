@@ -12,15 +12,23 @@
 #define MAX_PACK_PATH_LEN 256  // 最大路径长度
 #define BLOCK_BUFFER_SIZE 4096 // 读写文件的缓冲区大小
 
-enum FileType : char
-{
-    FILE_TYPE_NORMAL,
-    FILE_TYPE_HARD_LINK,
-    FILE_TYPE_SYMBOLIC_LINK,
-    FILE_TYPE_DIRECTORY,
-    FILE_TYPE_FIFO,
-    FILE_TYPE_OTHER
-};
+#define FILE_TYPE_NORMAL 1
+#define FILE_TYPE_HARD_LINK 2
+#define FILE_TYPE_SYMBOLIC_LINK 4
+#define FILE_TYPE_DIRECTORY 8
+#define FILE_TYPE_FIFO 16
+#define FILE_TYPE_OTHER 32
+
+typedef unsigned char FileType;
+// enum FileType : char
+// {
+//     FILE_TYPE_NORMAL,
+//     FILE_TYPE_HARD_LINK,
+//     FILE_TYPE_SYMBOLIC_LINK,
+//     FILE_TYPE_DIRECTORY,
+//     FILE_TYPE_FIFO,
+//     FILE_TYPE_OTHER
+// };
 
 struct FileHeader
 {

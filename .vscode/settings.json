@@ -51,6 +51,10 @@
         "typeinfo": "cpp",
         "cstring": "cpp",
         "bitset": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "condition_variable": "cpp",
+        "map": "cpp",
+        "regex": "cpp",
+        "shared_mutex": "cpp"
     }
 }

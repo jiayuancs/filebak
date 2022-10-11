@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PACKER_H_
 #define INCLUDE_PACKER_H_
 
-#include "filebase.h"
+#include "filter.h"
 #include <unordered_map>
 
 class Packer
@@ -11,10 +11,11 @@ private:
     std::filesystem::path bak_path;  // 打包文件的路径
     std::unordered_map<ino_t, std::string> inode_table;
 
+    Filter filter;
     void DfsFile(FileBase &bak_file, std::filesystem::path cur_path);
 
 public:
-    Packer(std::string root_path_, std::string pack_path_);
+    Packer(std::string root_path_, std::string pack_path_, const Filter& filter_);
     ~Packer();
 
     // 打包
