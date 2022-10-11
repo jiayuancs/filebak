@@ -49,6 +49,12 @@
 开发语言：C++
 
 
+环境配置
+```shell
+# 安装openssl库
+sudo apt-get install libssl-dev
+```
+
 
 ## 使用方法
 

@@ -1,15 +1,21 @@
-cmake_minimum_required(VERSION 3.0)
-
+cmake_minimum_required(VERSION 3.16)
 project(FILEBAK)
 
-add_compile_options(-Wall -std=c++17)
-
-set(CMAKE_BUILD_TYPE Debug)
-
+# 可执行文件名
+set(EXE_FILE_NAME main)
+# main函数所在文件
+set(MAIN_FILE_PATH test/test_aes.cpp)
+# 源文件
+aux_source_directory(./src SRC_FILES)
 include_directories(./include)
 
-# add_executable(main test/test_packer.cpp src/packer.cpp)
-# add_executable(main test/test_filebase.cpp src/filebase.cpp)
-# add_executable(main test/test_link.cpp)
-# add_executable(main test/test_packer.cpp src/packer.cpp src/filebase.cpp)
-add_executable(main test/test_compressor.cpp src/compressor.cpp src/packer.cpp src/filebase.cpp)
+# openssl
+set(OPENSSL_USE_STATIC_LIBS TRUE)
+find_package(OpenSSL REQUIRED)
+
+# 编译选项
+add_compile_options(-Wall -std=c++17 -lcrypto)
+set(CMAKE_BUILD_TYPE Debug)
+add_executable(${EXE_FILE_NAME} ${MAIN_FILE_PATH} ${SRC_FILES})
+
+target_link_libraries(${EXE_FILE_NAME} OpenSSL::Crypto)
