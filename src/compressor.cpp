@@ -77,6 +77,7 @@ bool Compressor::Compress()
     FileBase file_in(file_path);
     if (!file_in.OpenFile(std::ios::in | std::ios::binary))
         return false;
+    BackupInfo info = file_in.ReadBackupInfo();
 
     // 压缩后的文件
     std::filesystem::path cps_path(file_path);
@@ -84,6 +85,7 @@ bool Compressor::Compress()
     FileBase file_out(cps_path);
     if (!file_out.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc))
         return false;
+    file_out.WriteBackupInfo(info);
 
     // 统计词频
     memset(freq, 0, sizeof(freq));
@@ -107,7 +109,7 @@ bool Compressor::Compress()
 
     // 写入编码后的数据
     file_in.clear();
-    file_in.seekg(0);
+    file_in.seekg(sizeof(info), std::ios::beg);     // 跳过备份信息头
     std::string buf;
     uchar = 0;
     while (file_in.read((char *)&uchar, sizeof(uchar)))
@@ -136,7 +138,7 @@ bool Compressor::Compress()
 
     // 记录补0的个数
     file_out.clear();
-    file_out.seekp(0);
+    file_out.seekp(sizeof(info), std::ios::beg);     // 跳过备份信息头
     file_out.write((const char *)&padding_size, sizeof(padding_size));
 
     file_out.close();
@@ -154,6 +156,7 @@ bool Compressor::Decompress()
     FileBase file_in(file_path);
     if (!file_in.OpenFile(std::ios::in | std::ios::binary))
         return false;
+    BackupInfo info = file_in.ReadBackupInfo();
 
     // 解压后的文件
     std::filesystem::path bak_path(file_path);
@@ -161,6 +164,7 @@ bool Compressor::Decompress()
     FileBase file_out(bak_path);
     if (!file_out.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc))
         return false;
+    file_out.WriteBackupInfo(info);
 
     // 读取补0个数
     unsigned char padding_size = 0;

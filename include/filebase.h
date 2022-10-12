@@ -11,7 +11,9 @@
 #include <iostream>
 #define MAX_PACK_PATH_LEN 256  // 最大路径长度
 #define BLOCK_BUFFER_SIZE 4096 // 读写文件的缓冲区大小
+#define BACKUP_COMMENT_SIZE 255
 
+// 文件类型
 #define FILE_TYPE_NORMAL 1
 #define FILE_TYPE_HARD_LINK 2
 #define FILE_TYPE_SYMBOLIC_LINK 4
@@ -19,16 +21,16 @@
 #define FILE_TYPE_FIFO 16
 #define FILE_TYPE_OTHER 32
 
+// 文件格式
+#define FILE_MOD_COMPRESS 1     // 压缩
+#define FILE_MOD_ENCRYPT 2      // 加密
+
 typedef unsigned char FileType;
-// enum FileType : char
-// {
-//     FILE_TYPE_NORMAL,
-//     FILE_TYPE_HARD_LINK,
-//     FILE_TYPE_SYMBOLIC_LINK,
-//     FILE_TYPE_DIRECTORY,
-//     FILE_TYPE_FIFO,
-//     FILE_TYPE_OTHER
-// };
+
+struct BackupInfo{
+    char comment[BACKUP_COMMENT_SIZE];
+    unsigned char mod;
+};
 
 struct FileHeader
 {
@@ -64,6 +66,10 @@ public:
 
     // 从当前文件中读一个文件头信息
     FileHeader ReadFileHeader();
+    // 读取备份信息
+    BackupInfo ReadBackupInfo();
+    void WriteBackupInfo();
+    void WriteBackupInfo(BackupInfo info);
 
     size_t GetFileSize();
     FileType GetFileType();

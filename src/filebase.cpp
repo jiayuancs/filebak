@@ -82,6 +82,21 @@ FileHeader FileBase::ReadFileHeader()
     return fileheader;
 }
 
+BackupInfo FileBase::ReadBackupInfo()
+{
+    BackupInfo info;
+    this->read((char*)&info, sizeof(info));
+    return info;
+}
+void FileBase::WriteBackupInfo(BackupInfo info)
+{
+    this->write((char*)&info, sizeof(info));
+}
+void FileBase::WriteBackupInfo()
+{
+    BackupInfo info = {0};
+    this->write((char*)&info, sizeof(info));
+}
 size_t FileBase::GetFileSize()
 {
     return fileheader.metadata.st_size;

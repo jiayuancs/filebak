@@ -20,6 +20,7 @@ bool Aes::Encrypt()
     FileBase file_in(file_path);
     if (!file_in.OpenFile(std::ios::in | std::ios::binary))
         return false;
+    BackupInfo info = file_in.ReadBackupInfo();
 
     // 加密后的文件
     std::filesystem::path ept_path(file_path);
@@ -27,6 +28,7 @@ bool Aes::Encrypt()
     FileBase file_out(ept_path);
     if (!file_out.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc))
         return false;
+    file_out.WriteBackupInfo(info);
 
     // 加密
     char buf_in[AES_BLOCK_SIZE];
@@ -60,6 +62,7 @@ bool Aes::Decrypt()
     FileBase file_in(file_path);
     if (!file_in.OpenFile(std::ios::in | std::ios::binary))
         return false;
+    BackupInfo info = file_in.ReadBackupInfo();
 
     // 解密后的文件
     std::filesystem::path dpt_path(file_path);
@@ -67,6 +70,7 @@ bool Aes::Decrypt()
     FileBase file_out(dpt_path);
     if (!file_out.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc))
         return false;
+    file_out.WriteBackupInfo(info);
 
     // 解密
     char buf_in[AES_BLOCK_SIZE];

@@ -5,15 +5,20 @@
 #include"compressor.h"
 #include"aes.h"
 
+// 默认将目录下的文件打包，可选对打包后的文件进行压缩或加密
+
+
+
+
 class Task
 {
 private:
     std::filesystem::path src_path; // 待备份的目录
     std::filesystem::path bak_path; // 备份文件存放的位置
-    std::string comment;            // 备份说明
 
+    BackupInfo info;
     Filter filter;
-
+    
 public:
     Task(std::string src_path_, std::string bak_path_);
     ~Task();

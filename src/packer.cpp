@@ -81,6 +81,8 @@ bool Packer::Pack()
     if (!bak_file.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc))
         return false;
 
+    bak_file.WriteBackupInfo();
+
     // 将备份路径写入到打包文件中
     char buf_pack_path[MAX_PACK_PATH_LEN] = {0};
     strcpy(buf_pack_path, absolute(root_path).string().c_str());
@@ -102,6 +104,8 @@ bool Packer::Unpack()
 {
     FileBase bak_file(bak_path);
     bak_file.OpenFile(std::ios::in | std::ios::binary);
+
+    bak_file.ReadBackupInfo();
 
     // 读取还原路径
     char buf_pack_path[MAX_PACK_PATH_LEN] = {0};
