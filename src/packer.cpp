@@ -70,6 +70,7 @@ void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
 
 bool Packer::Pack()
 {
+    bak_path += FILE_SUFFIX_PACK;
     FileHeader bak_file_header = {0};
     strcpy(bak_file_header.name, bak_path.string().c_str());
     // 普通文件
@@ -102,6 +103,9 @@ bool Packer::Pack()
 
 bool Packer::Unpack()
 {
+    if (bak_path.extension() != FILE_SUFFIX_PACK)
+        return false;
+
     FileBase bak_file(bak_path);
     bak_file.OpenFile(std::ios::in | std::ios::binary);
 

@@ -2,14 +2,29 @@
 
 Task::Task(std::string src_path_, std::string bak_path_)
 {
-    src_path.assign(src_path_);
-    bak_path.assign(bak_path_);
+    src_path = std::filesystem::absolute(src_path_);
+    bak_path = std::filesystem::absolute(bak_path_);
     memset(&info, 0, sizeof(info));
     info.mod = FILE_MOD_COMPRESS | FILE_MOD_ENCRYPT;
 }
 
 Task::~Task()
 {
+}
+
+bool Task::CheckPath()
+{
+    // 判断路径是否存在
+    if(!std::filesystem::exists(src_path))
+    {
+        std::cout<<"error: no such file or directory: "<<src_path.string()<<std::endl;
+        return false;
+    }
+
+    // 判断文件名是否符合要求
+    std::string name = bak_path.filename();
+    std::regex reg("^[.]*[\\w]+[\\w.-]*$");
+    return std::regex_match(name, reg);
 }
 
 void Task::SetComment(std::string comment_)
@@ -20,10 +35,14 @@ void Task::SetComment(std::string comment_)
 
 bool Task::Backup(std::string password)
 {
+    if (!CheckPath())
+        return false;
+
     // 打包
     Packer packer(src_path, bak_path, filter);
     if (!packer.Pack())
         return false;
+    bak_path += FILE_SUFFIX_PACK;
 
     if (info.mod & FILE_MOD_COMPRESS)
     {
@@ -54,6 +73,9 @@ bool Task::Backup(std::string password)
 
 bool Task::Restore(std::string password)
 {
+    if (!CheckPath())
+        return false;
+    
     // 读取的备份信息
     FileBase file(bak_path);
     file.OpenFile(std::ios::in | std::ios::binary);

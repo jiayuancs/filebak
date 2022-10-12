@@ -4,6 +4,8 @@
 #include "filter.h"
 #include <unordered_map>
 
+#define FILE_SUFFIX_PACK ".pak"
+
 class Packer
 {
 private:
