@@ -14,8 +14,6 @@ private:
     BackupInfo info; // 备份信息
     Filter filter;   // 用户自定义规则 过滤文件
 
-    bool CheckPath();
-
 public:
     Task(std::string src_path_, std::string bak_path_);
     ~Task();

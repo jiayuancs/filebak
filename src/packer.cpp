@@ -13,14 +13,29 @@ Packer::~Packer()
 
 void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
 {
-    std::cout << "DFS当前路径: " << std::filesystem::current_path() << std::endl;
-    std::cout << "DFS cur_path: " << cur_path.string() << std::endl;
+    std::cout<<cur_path.string()<<std::endl;
+
     FileBase file(cur_path);
     FileHeader fileheader = file.GetFileHeader();
 
     // 判断该文件是否满足过滤规则
     if(!filter.check(fileheader))
         return;
+
+    // 处理硬链接
+    if(file.IsHardLink()){
+        if (inode_table.count(fileheader.metadata.st_ino))
+        {   // 指向的inode已打包
+            strcpy(fileheader.linkname, inode_table[fileheader.metadata.st_ino].c_str());
+            bak_file.write((const char *)&fileheader, sizeof(fileheader));
+            return;
+        }
+        else
+        { // 指向的inode未打包
+            fileheader.metadata.st_nlink = 1;  // 作为常规文件处理
+            inode_table[fileheader.metadata.st_ino] = cur_path.string();
+        }
+    }
 
     char buf[BLOCK_BUFFER_SIZE] = {0};
     switch (file.GetFileType())
@@ -29,21 +44,9 @@ void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
         bak_file.write((const char *)&fileheader, sizeof(fileheader));
         for (const auto &entry : std::filesystem::directory_iterator(cur_path))
         {
-            std::cout << entry.path().string() << std::endl;
             DfsFile(bak_file, entry.path());
         }
         break;
-    case FILE_TYPE_HARD_LINK:
-        if (inode_table.count(fileheader.metadata.st_ino))
-        { // 指向的inode已打包
-            strcpy(fileheader.linkname, inode_table[fileheader.metadata.st_ino].c_str());
-            bak_file.write((const char *)&fileheader, sizeof(fileheader));
-            break;
-        }
-        else
-        { // 指向的inode未打包 当做普通文件处理(进入case FILE_TYPE_NORMAL分支)
-            inode_table[fileheader.metadata.st_ino] = cur_path.string();
-        }
     case FILE_TYPE_NORMAL:
         bak_file.write((const char *)&fileheader, sizeof(fileheader));
 
@@ -57,13 +60,12 @@ void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
         file.close();
         break;
     case FILE_TYPE_SYMBOLIC_LINK:
-        std::cout << "软链接" << std::endl;
+        bak_file.write((const char *)&fileheader, sizeof(fileheader));
         break;
     case FILE_TYPE_FIFO:
         bak_file.write((const char *)&fileheader, sizeof(fileheader));
         break;
     default:
-        std::cout << "Other" << std::endl;
         break;
     }
 }
@@ -91,10 +93,8 @@ bool Packer::Pack()
 
     // 切换工作目录
     std::filesystem::current_path(root_path.parent_path());
-    std::cout << "工作目录：" << std::filesystem::current_path() << std::endl;
 
     // 深度优先遍历目录树
-    std::cout << "目标目录：" << std::filesystem::relative(root_path, root_path.parent_path()) << std::endl;
     DfsFile(bak_file, std::filesystem::relative(root_path, root_path.parent_path()));
 
     bak_file.close();
@@ -133,7 +133,7 @@ bool Packer::Unpack()
         FileBase file(fileheader);
 
         // 只有普通文件需要复制文件内容到新文件中
-        if (file.GetFileType() != FILE_TYPE_NORMAL)
+        if (file.GetFileType() != FILE_TYPE_NORMAL || file.IsHardLink())
             continue;
 
         file.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc);

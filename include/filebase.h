@@ -73,6 +73,7 @@ public:
 
     size_t GetFileSize();
     FileType GetFileType();
+    bool IsHardLink();
     FileHeader GetFileHeader();
     void SetRelativePath(std::string filepath_);
 

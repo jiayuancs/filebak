@@ -6,6 +6,13 @@ FileBase::FileBase(FileHeader fileheader_)
     filepath.assign(fileheader.name);
     flag_no_fileheader = false;
 
+    if(IsHardLink())
+    {
+        std::filesystem::remove_all(fileheader.name);
+        std::filesystem::create_hard_link(fileheader.linkname, fileheader.name);
+        return;
+    }
+
     // 创建多级目录
     switch (GetFileType())
     {
@@ -17,12 +24,13 @@ FileBase::FileBase(FileHeader fileheader_)
         std::filesystem::create_directories(filepath.string());
         break;
     case FILE_TYPE_SYMBOLIC_LINK:
+        // 需要先删除文件
+        std::filesystem::remove_all(fileheader.name);
         std::filesystem::create_symlink(fileheader.linkname, fileheader.name);
         break;
-    case FILE_TYPE_HARD_LINK:
-        std::filesystem::create_hard_link(fileheader.linkname, fileheader.name);
-        break;
     case FILE_TYPE_FIFO:
+        // 需要先删除文件
+        std::filesystem::remove_all(fileheader.name);
         mkfifo(fileheader.name, fileheader.metadata.st_mode);
         break;
     default:
@@ -34,6 +42,8 @@ FileBase::FileBase(std::filesystem::path filepath_)
 {
     filepath = filepath_;
     flag_no_fileheader = true;
+
+    memset(&fileheader, 0, sizeof(fileheader));
 
     // 获取文件元信息
     lstat(filepath.string().c_str(), &(fileheader.metadata));
@@ -85,17 +95,17 @@ FileHeader FileBase::ReadFileHeader()
 BackupInfo FileBase::ReadBackupInfo()
 {
     BackupInfo info;
-    this->read((char*)&info, sizeof(info));
+    this->read((char *)&info, sizeof(info));
     return info;
 }
 void FileBase::WriteBackupInfo(BackupInfo info)
 {
-    this->write((char*)&info, sizeof(info));
+    this->write((char *)&info, sizeof(info));
 }
 void FileBase::WriteBackupInfo()
 {
     BackupInfo info = {0};
-    this->write((char*)&info, sizeof(info));
+    this->write((char *)&info, sizeof(info));
 }
 size_t FileBase::GetFileSize()
 {
@@ -107,14 +117,7 @@ FileType FileBase::GetFileType()
     switch (fileheader.metadata.st_mode & S_IFMT)
     {
     case S_IFREG:
-        if (fileheader.metadata.st_nlink == 1)
-        {
-            return FILE_TYPE_NORMAL;
-        }
-        else
-        {
-            return FILE_TYPE_HARD_LINK;
-        }
+        return FILE_TYPE_NORMAL;
         break;
     case S_IFDIR:
         return FILE_TYPE_DIRECTORY;
@@ -129,6 +132,11 @@ FileType FileBase::GetFileType()
         return FILE_TYPE_OTHER;
         break;
     }
+}
+
+bool FileBase::IsHardLink()
+{
+    return (fileheader.metadata.st_nlink > 1);
 }
 
 FileHeader FileBase::GetFileHeader()
