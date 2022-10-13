@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.cpp": "cpp",
         "iosfwd": "cpp",
         "fstream": "cpp",
         "*.tcc": "cpp",
@@ -55,6 +56,8 @@
         "condition_variable": "cpp",
         "map": "cpp",
         "regex": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "list": "cpp",
+        "unordered_set": "cpp"
     }
 }

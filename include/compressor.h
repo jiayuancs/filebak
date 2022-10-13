@@ -36,6 +36,8 @@ private:
     std::filesystem::path file_path;                         // 文件路径
     HuffNode *huff_root;
 
+    bool verbose; // 输出执行过程信息
+
     // 根据词频表计算Huffman编码
     void BuildHuffmanTree();
     void Encode(HuffNode *root, std::string code);
@@ -44,7 +46,7 @@ private:
     void CleanHuffmanTree(HuffNode *root);
 
 public:
-    Compressor(std::string file_path_);
+    Compressor(std::string file_path_, bool verbose_ = false);
     ~Compressor();
 
     bool Compress();

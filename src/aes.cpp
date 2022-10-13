@@ -1,10 +1,11 @@
 #include "aes.h"
 
-Aes::Aes(std::string file_path_, std::string password_)
+Aes::Aes(std::string file_path_, std::string password_, bool verbose_)
 {
     file_path.assign(file_path_);
     // 使用MD5将密码转换为128位密钥
     MD5((unsigned char *)(password_.c_str()), password_.length(), key);
+    verbose = verbose_;
 }
 
 Aes::~Aes()

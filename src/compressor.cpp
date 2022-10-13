@@ -1,10 +1,11 @@
 #include "compressor.h"
 
-Compressor::Compressor(std::string file_path_)
+Compressor::Compressor(std::string file_path_, bool verbose_)
 {
     memset(freq, 0, sizeof(freq));
     this->file_path.assign(file_path_);
     huff_root = nullptr;
+    verbose = verbose_;
 }
 
 Compressor::~Compressor()

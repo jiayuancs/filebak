@@ -13,19 +13,23 @@ private:
     std::filesystem::path bak_path;  // 打包文件的路径
     std::unordered_map<ino_t, std::string> inode_table;
 
+    bool verbose; // 输出执行过程信息
+
     Filter filter;
     void DfsFile(FileBase &bak_file, std::filesystem::path cur_path);
 
 public:
-    Packer(std::string root_path_, std::string pack_path_, const Filter &filter_);
+    Packer(std::string root_path_, std::string pack_path_, const Filter &filter_, bool verbose_ = false);
     ~Packer();
 
-    // 打包
+    // 打包到bak_path
     bool Pack();
-    // 解包到原有位置
-    bool Unpack(bool restore_metadata = false);
-    // 解包到指定位置
-    bool Unpack(std::string root_path_, bool restore_metadata = false);
+
+    /// @brief 解包
+    /// @param restore_metadata true:恢复元数据
+    /// @param use_original_path true:按原路径恢复  false:恢复到root_path
+    /// @return 解包成功返回true
+    bool Unpack(bool restore_metadata, bool use_original_path);
 };
 
 #endif // INCLUDE_PACKER_H_

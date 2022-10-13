@@ -6,6 +6,12 @@ Task::Task(std::string src_path_, std::string bak_path_)
     bak_path = std::filesystem::absolute(bak_path_);
     memset(&info, 0, sizeof(info));
     info.mod = FILE_MOD_COMPRESS | FILE_MOD_ENCRYPT;
+    info.timestamp = std::time(nullptr);
+    memcpy(info.backup_path, src_path_.c_str(), std::min(src_path_.length(), sizeof(info.backup_path)));
+
+    restore_metadata = false;
+    use_original_path = true;
+    verbose = true;
 }
 
 Task::~Task()
@@ -28,6 +34,20 @@ void Task::SetFilter(const Filter &filter_)
     filter = filter_;
 }
 
+void Task::SetVerbose(bool verbose_)
+{
+    verbose = verbose_;
+}
+
+void Task::RestoreMetadata(bool restore_metadata_)
+{
+    restore_metadata = restore_metadata_;
+}
+void Task::UseOrignalPath(bool use_original_path_)
+{
+    use_original_path = use_original_path_;
+}
+
 bool Task::Backup(std::string password)
 {
     // 判断路径是否存在
@@ -46,8 +66,9 @@ bool Task::Backup(std::string password)
     }
 
     // 打包
-    std::cout << "--------------- PACK ---------------" << std::endl;
-    Packer packer(src_path, bak_path, filter);
+    if (verbose)
+        std::cout << "--------------- PACK ---------------" << std::endl;
+    Packer packer(src_path, bak_path, filter, verbose);
     if (!packer.Pack())
     {
         std::cout << "error: failed to pack file" << std::endl;
@@ -57,9 +78,10 @@ bool Task::Backup(std::string password)
 
     if (info.mod & FILE_MOD_COMPRESS)
     {
-        std::cout << "--------------- COMPRESS ---------------" << std::endl;
+        if (verbose)
+            std::cout << "--------------- COMPRESS ---------------" << std::endl;
         // 压缩
-        Compressor compressor(bak_path);
+        Compressor compressor(bak_path, verbose);
         if (!compressor.Compress())
         {
             std::cout << "error: failed to compress file" << std::endl;
@@ -71,9 +93,10 @@ bool Task::Backup(std::string password)
 
     if (info.mod & FILE_MOD_ENCRYPT)
     {
-        std::cout << "--------------- ENCRYPT ---------------" << std::endl;
+        if (verbose)
+            std::cout << "--------------- ENCRYPT ---------------" << std::endl;
         // 加密
-        Aes aes(bak_path, password);
+        Aes aes(bak_path, password, verbose);
         if (!aes.Encrypt())
         {
             std::cout << "error: failed to encrpy file" << std::endl;
@@ -92,7 +115,7 @@ bool Task::Backup(std::string password)
     return true;
 }
 
-bool Task::Restore(std::string password, bool restore_metadata)
+bool Task::Restore(std::string password)
 {
     // 判断路径是否存在
     if (!std::filesystem::exists(bak_path))
@@ -109,9 +132,10 @@ bool Task::Restore(std::string password, bool restore_metadata)
 
     if (info.mod & FILE_MOD_ENCRYPT)
     {
-        std::cout << "--------------- DECRYPT ---------------" << std::endl;
+        if (verbose)
+            std::cout << "--------------- DECRYPT ---------------" << std::endl;
         // 解密
-        Aes aes(bak_path, password);
+        Aes aes(bak_path, password, verbose);
         if (!aes.Decrypt())
         {
             std::cout << "error: failed to decrypt file" << std::endl;
@@ -122,9 +146,10 @@ bool Task::Restore(std::string password, bool restore_metadata)
 
     if (info.mod & FILE_MOD_COMPRESS)
     {
-        std::cout << "--------------- DECOMPRESS ---------------" << std::endl;
+        if (verbose)
+            std::cout << "--------------- DECOMPRESS ---------------" << std::endl;
         // 解压
-        Compressor compressor(bak_path);
+        Compressor compressor(bak_path, verbose);
         if (!compressor.Decompress())
         {
             std::cout << "error: failed to decompress file" << std::endl;
@@ -135,9 +160,10 @@ bool Task::Restore(std::string password, bool restore_metadata)
     }
 
     // 解包
-    std::cout << "--------------- UNPACK ---------------" << std::endl;
-    Packer packer(src_path, bak_path, filter);
-    if (!packer.Unpack(restore_metadata))
+    if (verbose)
+        std::cout << "--------------- UNPACK ---------------" << std::endl;
+    Packer packer(src_path, bak_path, filter, verbose);
+    if (!packer.Unpack(restore_metadata, use_original_path))
     {
         std::cout << "error: failed to unpack file" << std::endl;
         return false;

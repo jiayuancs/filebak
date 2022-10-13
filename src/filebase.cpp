@@ -55,24 +55,6 @@ FileBase::FileBase(std::filesystem::path filepath_)
         readlink(filepath.string().c_str(), link_buf, MAX_PACK_PATH_LEN);
         strcpy(fileheader.linkname, link_buf);
     }
-    // switch (GetFileType())
-    // {
-    // case FILE_TYPE_NORMAL:
-    //     break;
-    // case FILE_TYPE_DIRECTORY:
-    //     break;
-    // case FILE_TYPE_SYMBOLIC_LINK:
-    //     char link_buf[MAX_PACK_PATH_LEN] = {0};
-    //     readlink(filepath.string().c_str(), link_buf, MAX_PACK_PATH_LEN);
-    //     strcpy(fileheader.linkname, link_buf);
-    //     break;
-    // case FILE_TYPE_HARD_LINK:
-    //     break;
-    // case FILE_TYPE_FIFO:
-    //     break;
-    // default:
-    //     break;
-    // }
 }
 
 FileBase::~FileBase()
@@ -142,12 +124,6 @@ bool FileBase::IsHardLink()
 FileHeader FileBase::GetFileHeader()
 {
     return fileheader;
-}
-
-void FileBase::SetRelativePath(std::string filepath_)
-{
-    std::filesystem::path base_path(filepath_);
-    relative(filepath, base_path); ///?????????
 }
 
 void FileBase::ReatoreMetadata()

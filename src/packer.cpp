@@ -1,10 +1,11 @@
 #include "packer.h"
 
-Packer::Packer(std::string root_path_, std::string pack_path_, const Filter &filter_)
+Packer::Packer(std::string root_path_, std::string pack_path_, const Filter &filter_, bool verbose_)
 {
     root_path.assign(root_path_);
     bak_path.assign(pack_path_);
     filter = filter_;
+    verbose = verbose_;
 }
 
 Packer::~Packer()
@@ -13,7 +14,8 @@ Packer::~Packer()
 
 void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
 {
-    std::cout << cur_path.string() << std::endl;
+    if (verbose)
+        std::cout << cur_path.string() << std::endl;
 
     FileBase file(cur_path);
     FileHeader fileheader = file.GetFileHeader();
@@ -87,11 +89,6 @@ bool Packer::Pack()
 
     bak_file.WriteBackupInfo();
 
-    // 将备份路径写入到打包文件中
-    char buf_pack_path[MAX_PACK_PATH_LEN] = {0};
-    strcpy(buf_pack_path, absolute(root_path).string().c_str());
-    bak_file.write(buf_pack_path, sizeof(buf_pack_path));
-
     // 切换工作目录
     std::filesystem::current_path(root_path.parent_path());
 
@@ -102,7 +99,7 @@ bool Packer::Pack()
     return true;
 }
 
-bool Packer::Unpack(bool restore_metadata)
+bool Packer::Unpack(bool restore_metadata, bool use_original_path)
 {
     if (bak_path.extension() != FILE_SUFFIX_PACK)
         return false;
@@ -110,18 +107,24 @@ bool Packer::Unpack(bool restore_metadata)
     FileBase bak_file(bak_path);
     bak_file.OpenFile(std::ios::in | std::ios::binary);
 
-    bak_file.ReadBackupInfo();
-
-    // 读取还原路径
-    char buf_pack_path[MAX_PACK_PATH_LEN] = {0};
-    bak_file.read(buf_pack_path, sizeof(buf_pack_path));
-    root_path.assign(buf_pack_path);
+    BackupInfo info = bak_file.ReadBackupInfo();
 
     // 切换工作目录
-    if (!std::filesystem::exists(root_path.parent_path()))
+    if (use_original_path)
+    {
+        // 使用原路径
+        root_path.assign(info.backup_path);
         std::filesystem::create_directories(root_path.parent_path());
-    std::filesystem::current_path(root_path.parent_path());
-    std::cout << "工作目录: " << std::filesystem::current_path() << std::endl;
+        std::filesystem::current_path(root_path.parent_path());
+    }
+    else
+    {
+        // 使用指定路径root_path
+        std::filesystem::create_directories(root_path);
+        std::filesystem::current_path(root_path);
+    }
+    if (verbose)
+        std::cout << "工作目录: " << std::filesystem::current_path() << std::endl;
 
     char buf[BLOCK_BUFFER_SIZE] = {0};
     FileHeader fileheader = {0};
@@ -129,7 +132,9 @@ bool Packer::Unpack(bool restore_metadata)
     {
         // 读文件头
         fileheader = bak_file.ReadFileHeader();
-        std::cout << fileheader.name << std::endl;
+
+        if (verbose)
+            std::cout << fileheader.name << std::endl;
 
         FileBase file(fileheader);
 

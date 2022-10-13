@@ -24,6 +24,8 @@ private:
     std::string mtim;
     std::string ctim;
 
+    bool verbose;           // 输出执行过程信息
+
 public:
     Filter();
     Filter(const Filter &filter_);

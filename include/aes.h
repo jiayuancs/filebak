@@ -13,8 +13,10 @@ private:
     unsigned char key[MD5_DIGEST_LENGTH];
     std::filesystem::path file_path;
 
+    bool verbose; // 输出执行过程信息
+
 public:
-    Aes(std::string file_path_, std::string password_);
+    Aes(std::string file_path_, std::string password_, bool verbose_ = false);
     ~Aes();
 
     bool Encrypt();

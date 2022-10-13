@@ -30,8 +30,10 @@ typedef unsigned char FileType;
 
 struct BackupInfo
 {
-    char comment[BACKUP_COMMENT_SIZE];
-    unsigned char mod;
+    std::time_t timestamp;               // 时间戳
+    char backup_path[MAX_PACK_PATH_LEN]; // 备份路径
+    char comment[BACKUP_COMMENT_SIZE];   // 描述信息
+    unsigned char mod;                   // 压缩、加密
 };
 
 struct FileHeader
@@ -77,7 +79,6 @@ public:
     FileType GetFileType();
     bool IsHardLink();
     FileHeader GetFileHeader();
-    void SetRelativePath(std::string filepath_);
 
     void ReatoreMetadata();
 
