@@ -18,6 +18,16 @@ void Task::SetComment(std::string comment_)
     memcpy(info.comment, comment_.c_str(), std::min(comment_.length(), sizeof(info.comment)));
 }
 
+void Task::SetMod(unsigned char mod_)
+{
+    info.mod = mod_;
+}
+
+void Task::SetFilter(const Filter &filter_)
+{
+    filter = filter_;
+}
+
 bool Task::Backup(std::string password)
 {
     // 判断路径是否存在
