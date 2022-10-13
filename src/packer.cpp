@@ -1,6 +1,6 @@
 #include "packer.h"
 
-Packer::Packer(std::string root_path_, std::string pack_path_, const Filter& filter_)
+Packer::Packer(std::string root_path_, std::string pack_path_, const Filter &filter_)
 {
     root_path.assign(root_path_);
     bak_path.assign(pack_path_);
@@ -13,26 +13,27 @@ Packer::~Packer()
 
 void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
 {
-    std::cout<<cur_path.string()<<std::endl;
+    std::cout << cur_path.string() << std::endl;
 
     FileBase file(cur_path);
     FileHeader fileheader = file.GetFileHeader();
 
     // 判断该文件是否满足过滤规则
-    if(!filter.check(fileheader))
+    if (!filter.check(fileheader))
         return;
 
     // 处理硬链接
-    if(file.IsHardLink()){
+    if (file.IsHardLink())
+    {
         if (inode_table.count(fileheader.metadata.st_ino))
-        {   // 指向的inode已打包
+        { // 指向的inode已打包
             strcpy(fileheader.linkname, inode_table[fileheader.metadata.st_ino].c_str());
             bak_file.write((const char *)&fileheader, sizeof(fileheader));
             return;
         }
         else
-        { // 指向的inode未打包
-            fileheader.metadata.st_nlink = 1;  // 作为常规文件处理
+        {                                     // 指向的inode未打包
+            fileheader.metadata.st_nlink = 1; // 作为常规文件处理
             inode_table[fileheader.metadata.st_ino] = cur_path.string();
         }
     }
@@ -101,7 +102,7 @@ bool Packer::Pack()
     return true;
 }
 
-bool Packer::Unpack()
+bool Packer::Unpack(bool restore_metadata)
 {
     if (bak_path.extension() != FILE_SUFFIX_PACK)
         return false;
@@ -133,23 +134,29 @@ bool Packer::Unpack()
         FileBase file(fileheader);
 
         // 只有普通文件需要复制文件内容到新文件中
-        if (file.GetFileType() != FILE_TYPE_NORMAL || file.IsHardLink())
-            continue;
+        if (file.GetFileType() == FILE_TYPE_NORMAL && !file.IsHardLink())
+        {
+            file.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc);
+            size_t file_size = file.GetFileSize();
+            while (file_size >= BLOCK_BUFFER_SIZE)
+            {
+                bak_file.read(buf, BLOCK_BUFFER_SIZE);
+                file.write(buf, BLOCK_BUFFER_SIZE);
+                file_size -= BLOCK_BUFFER_SIZE;
+            }
+            if (file_size)
+            {
+                bak_file.read(buf, file_size);
+                file.write(buf, file_size);
+            }
+            file.close();
+        }
 
-        file.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc);
-        size_t file_size = file.GetFileSize();
-        while (file_size >= BLOCK_BUFFER_SIZE)
+        // 恢复文件时间戳
+        if (restore_metadata)
         {
-            bak_file.read(buf, BLOCK_BUFFER_SIZE);
-            file.write(buf, BLOCK_BUFFER_SIZE);
-            file_size -= BLOCK_BUFFER_SIZE;
+            file.ReatoreMetadata();
         }
-        if (file_size)
-        {
-            bak_file.read(buf, file_size);
-            file.write(buf, file_size);
-        }
-        file.close();
     }
 
     bak_file.close();

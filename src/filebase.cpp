@@ -6,7 +6,7 @@ FileBase::FileBase(FileHeader fileheader_)
     filepath.assign(fileheader.name);
     flag_no_fileheader = false;
 
-    if(IsHardLink())
+    if (IsHardLink())
     {
         std::filesystem::remove_all(fileheader.name);
         std::filesystem::create_hard_link(fileheader.linkname, fileheader.name);
@@ -148,4 +148,19 @@ void FileBase::SetRelativePath(std::string filepath_)
 {
     std::filesystem::path base_path(filepath_);
     relative(filepath, base_path); ///?????????
+}
+
+void FileBase::ReatoreMetadata()
+{
+    struct stat *metadata = &(fileheader.metadata);
+
+    // 还原文件权限信息
+    chmod(fileheader.name, metadata->st_mode);
+
+    // 还原文件的用户和组
+    lchown(fileheader.name, metadata->st_uid, metadata->st_gid);
+
+    // 还原时间戳(访问时间 修改时间)
+    timespec tim[2] = {metadata->st_atim, metadata->st_mtim};
+    utimensat(AT_FDCWD, fileheader.name, tim, AT_SYMLINK_NOFOLLOW);
 }

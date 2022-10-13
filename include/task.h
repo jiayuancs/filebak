@@ -19,9 +19,11 @@ public:
     ~Task();
 
     void SetComment(std::string comment_);
+    void SetMod(unsigned char mod_);
+    void SetFilter(const Filter &filter_);
 
     bool Backup(std::string password);
-    bool Restore(std::string password);
+    bool Restore(std::string password, bool restore_metadata = false);
 };
 
 #endif // INCLUDE_TASK_H_

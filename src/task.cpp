@@ -36,6 +36,7 @@ bool Task::Backup(std::string password)
     }
 
     // 打包
+    std::cout << "--------------- PACK ---------------" << std::endl;
     Packer packer(src_path, bak_path, filter);
     if (!packer.Pack())
     {
@@ -46,6 +47,7 @@ bool Task::Backup(std::string password)
 
     if (info.mod & FILE_MOD_COMPRESS)
     {
+        std::cout << "--------------- COMPRESS ---------------" << std::endl;
         // 压缩
         Compressor compressor(bak_path);
         if (!compressor.Compress())
@@ -53,11 +55,13 @@ bool Task::Backup(std::string password)
             std::cout << "error: failed to compress file" << std::endl;
             return false;
         }
+        std::filesystem::remove_all(bak_path);
         bak_path += FILE_SUFFIX_COMPRESS;
     }
 
     if (info.mod & FILE_MOD_ENCRYPT)
     {
+        std::cout << "--------------- ENCRYPT ---------------" << std::endl;
         // 加密
         Aes aes(bak_path, password);
         if (!aes.Encrypt())
@@ -65,6 +69,7 @@ bool Task::Backup(std::string password)
             std::cout << "error: failed to encrpy file" << std::endl;
             return false;
         }
+        std::filesystem::remove_all(bak_path);
         bak_path += FILE_SUFFIX_ENCRYPT;
     }
 
@@ -77,7 +82,7 @@ bool Task::Backup(std::string password)
     return true;
 }
 
-bool Task::Restore(std::string password)
+bool Task::Restore(std::string password, bool restore_metadata)
 {
     // 判断路径是否存在
     if (!std::filesystem::exists(bak_path))
@@ -94,6 +99,7 @@ bool Task::Restore(std::string password)
 
     if (info.mod & FILE_MOD_ENCRYPT)
     {
+        std::cout << "--------------- DECRYPT ---------------" << std::endl;
         // 解密
         Aes aes(bak_path, password);
         if (!aes.Decrypt())
@@ -106,6 +112,7 @@ bool Task::Restore(std::string password)
 
     if (info.mod & FILE_MOD_COMPRESS)
     {
+        std::cout << "--------------- DECOMPRESS ---------------" << std::endl;
         // 解压
         Compressor compressor(bak_path);
         if (!compressor.Decompress())
@@ -113,16 +120,19 @@ bool Task::Restore(std::string password)
             std::cout << "error: failed to decompress file" << std::endl;
             return false;
         }
+        std::filesystem::remove_all(bak_path);
         bak_path.replace_extension("");
     }
 
     // 解包
+    std::cout << "--------------- UNPACK ---------------" << std::endl;
     Packer packer(src_path, bak_path, filter);
-    if (!packer.Unpack())
+    if (!packer.Unpack(restore_metadata))
     {
         std::cout << "error: failed to unpack file" << std::endl;
         return false;
     }
+    std::filesystem::remove_all(bak_path);
 
     return true;
 }

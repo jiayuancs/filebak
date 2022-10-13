@@ -17,15 +17,15 @@ private:
     void DfsFile(FileBase &bak_file, std::filesystem::path cur_path);
 
 public:
-    Packer(std::string root_path_, std::string pack_path_, const Filter& filter_);
+    Packer(std::string root_path_, std::string pack_path_, const Filter &filter_);
     ~Packer();
 
     // 打包
     bool Pack();
     // 解包到原有位置
-    bool Unpack();
+    bool Unpack(bool restore_metadata = false);
     // 解包到指定位置
-    bool Unpack(std::string root_path_);
+    bool Unpack(std::string root_path_, bool restore_metadata = false);
 };
 
 #endif // INCLUDE_PACKER_H_

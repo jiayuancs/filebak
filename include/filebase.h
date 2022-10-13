@@ -7,6 +7,7 @@
 #include <cstring>
 #include <fstream>
 #include <filesystem>
+#include <fcntl.h>
 
 #include <iostream>
 #define MAX_PACK_PATH_LEN 256  // 最大路径长度
@@ -22,12 +23,13 @@
 #define FILE_TYPE_OTHER 32
 
 // 文件格式
-#define FILE_MOD_COMPRESS 1     // 压缩
-#define FILE_MOD_ENCRYPT 2      // 加密
+#define FILE_MOD_COMPRESS 1 // 压缩
+#define FILE_MOD_ENCRYPT 2  // 加密
 
 typedef unsigned char FileType;
 
-struct BackupInfo{
+struct BackupInfo
+{
     char comment[BACKUP_COMMENT_SIZE];
     unsigned char mod;
 };
@@ -76,6 +78,8 @@ public:
     bool IsHardLink();
     FileHeader GetFileHeader();
     void SetRelativePath(std::string filepath_);
+
+    void ReatoreMetadata();
 
     // 用于测试
     void printTime(std::string dec, const struct timespec &tim)
