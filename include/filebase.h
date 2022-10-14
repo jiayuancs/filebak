@@ -23,8 +23,8 @@
 #define FILE_TYPE_OTHER 32
 
 // 文件格式
-#define FILE_MOD_COMPRESS 1 // 压缩
-#define FILE_MOD_ENCRYPT 2  // 加密
+#define BACKUP_MOD_COMPRESS 1 // 压缩
+#define BACKUP_MOD_ENCRYPT 2  // 加密
 
 typedef unsigned char FileType;
 

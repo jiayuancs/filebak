@@ -22,17 +22,21 @@ public:
     Task(std::string src_path_, std::string bak_path_);
     ~Task();
 
+    void SetVerbose(bool verbose_);
+
+    // 备份时使用
     void SetComment(std::string comment_);
     void SetMod(unsigned char mod_);
     void SetFilter(const Filter &filter_);
-    void SetVerbose(bool verbose_);
+
+    // 恢复时使用
     void RestoreMetadata(bool restore_metadata_);
     void UseOrignalPath(bool use_original_path_);
 
     bool Backup(std::string password);
     bool Restore(std::string password);
 
-    BackupInfo GetBackupInfo();
+    static bool GetBackupInfo(std::string file_path_, BackupInfo &info_);
 };
 
 #endif // INCLUDE_TASK_H_

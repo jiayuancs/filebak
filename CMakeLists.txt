@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 project(FILEBAK)
 
 # 可执行文件名
-set(EXE_FILE_NAME main)
+set(EXE_FILE_NAME filebak)
 # main函数所在文件
-set(MAIN_FILE_PATH test/test_task.cpp)
+# set(MAIN_FILE_PATH test/test_task.cpp)
 # 源文件
 aux_source_directory(./src SRC_FILES)
 include_directories(./include)

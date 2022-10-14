@@ -5,7 +5,7 @@ Task::Task(std::string src_path_, std::string bak_path_)
     src_path = std::filesystem::absolute(src_path_);
     bak_path = std::filesystem::absolute(bak_path_);
     memset(&info, 0, sizeof(info));
-    info.mod = FILE_MOD_COMPRESS | FILE_MOD_ENCRYPT;
+    info.mod = BACKUP_MOD_COMPRESS | BACKUP_MOD_ENCRYPT;
     info.timestamp = std::time(nullptr);
     memcpy(info.backup_path, src_path_.c_str(), std::min(src_path_.length(), sizeof(info.backup_path)));
 
@@ -76,7 +76,7 @@ bool Task::Backup(std::string password)
     }
     bak_path += FILE_SUFFIX_PACK;
 
-    if (info.mod & FILE_MOD_COMPRESS)
+    if (info.mod & BACKUP_MOD_COMPRESS)
     {
         if (verbose)
             std::cout << "--------------- COMPRESS ---------------" << std::endl;
@@ -91,7 +91,7 @@ bool Task::Backup(std::string password)
         bak_path += FILE_SUFFIX_COMPRESS;
     }
 
-    if (info.mod & FILE_MOD_ENCRYPT)
+    if (info.mod & BACKUP_MOD_ENCRYPT)
     {
         if (verbose)
             std::cout << "--------------- ENCRYPT ---------------" << std::endl;
@@ -130,7 +130,7 @@ bool Task::Restore(std::string password)
     info = file.ReadBackupInfo();
     file.close();
 
-    if (info.mod & FILE_MOD_ENCRYPT)
+    if (info.mod & BACKUP_MOD_ENCRYPT)
     {
         if (verbose)
             std::cout << "--------------- DECRYPT ---------------" << std::endl;
@@ -144,7 +144,7 @@ bool Task::Restore(std::string password)
         bak_path.replace_extension("");
     }
 
-    if (info.mod & FILE_MOD_COMPRESS)
+    if (info.mod & BACKUP_MOD_COMPRESS)
     {
         if (verbose)
             std::cout << "--------------- DECOMPRESS ---------------" << std::endl;
@@ -170,5 +170,22 @@ bool Task::Restore(std::string password)
     }
     std::filesystem::remove_all(bak_path);
 
+    return true;
+}
+
+bool Task::GetBackupInfo(std::string file_path_, BackupInfo &info_)
+{
+    // 判断路径是否存在
+    if (!std::filesystem::exists(file_path_))
+    {
+        std::cout << "error: no such file or directory: " << file_path_ << std::endl;
+        return false;
+    }
+
+    // 读取的备份信息
+    FileBase file(file_path_);
+    file.OpenFile(std::ios::in | std::ios::binary);
+    info_ = file.ReadBackupInfo();
+    file.close();
     return true;
 }
