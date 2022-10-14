@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     if (parser.flag_help)
         return 0;
 
-    // 备份任务
+    // 备份
     if (parser.flag_backup)
     {
         Task task(parser.str_input, parser.str_output);
@@ -34,13 +34,25 @@ int main(int argc, char **argv)
         task.SetComment(parser.str_message);
 
         Filter filter;
-        // //
+        if (parser.flag_path)
+            filter.SetPathFilter(parser.str_path);
+        if (parser.flag_name)
+            filter.SetNameFilter(parser.str_name);
+        if (parser.flag_type)
+            filter.SetFileType(parser.file_type);
+        if (parser.flag_atime)
+            filter.SetAccessTime(parser.atime_start, parser.atime_end);
+        if (parser.flag_mtime)
+            filter.SetModifyTime(parser.mtime_start, parser.mtime_end);
+        if (parser.flag_ctime)
+            filter.SetChangeTime(parser.ctime_start, parser.ctime_end);
         task.SetFilter(filter);
 
         task.Backup(parser.str_password);
     }
-    // 恢复任务
-    else if (parser.flag_restore)
+
+    // 恢复
+    if (parser.flag_restore)
     {
         Task task(parser.str_output, parser.str_input);
         task.RestoreMetadata(parser.flag_metadata);
@@ -48,21 +60,28 @@ int main(int argc, char **argv)
         task.SetVerbose(parser.flag_verbose);
         task.Restore(parser.str_password);
     }
+
     // 显示备份文件信息
-    else if (parser.flag_list)
+    if (parser.flag_list)
     {
         BackupInfo info;
-        if(Task::GetBackupInfo(parser.str_list, info)){
-            // cout
+        if (Task::GetBackupInfo(parser.str_list, info))
+        {
+            std::string backup_mode = "pack ";
+            if (info.mod & BACKUP_MOD_COMPRESS)
+                backup_mode += "compress ";
+            if (info.mod & BACKUP_MOD_ENCRYPT)
+                backup_mode += "encrypt";
+            std::cout << "Backup path: " << info.backup_path << std::endl;
+            std::cout << "Backup Time: " << info.timestamp << std::endl;
+            std::cout << "Backup Mode: " << backup_mode << std::endl;
+            std::cout << "Comment: " << info.comment << std::endl;
         }
-        else{
-            // 
+        else
+        {
+            std::cout << "error: no such file or directory: " << parser.str_list << std::endl;
+            return -1;
         }
-    }
-    else
-    {
-        parser.PrintErrorInfo();
-        return -1;
     }
 
     return 0;

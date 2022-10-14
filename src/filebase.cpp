@@ -96,24 +96,7 @@ size_t FileBase::GetFileSize()
 
 FileType FileBase::GetFileType()
 {
-    switch (fileheader.metadata.st_mode & S_IFMT)
-    {
-    case S_IFREG:
-        return FILE_TYPE_NORMAL;
-        break;
-    case S_IFDIR:
-        return FILE_TYPE_DIRECTORY;
-        break;
-    case S_IFLNK:
-        return FILE_TYPE_SYMBOLIC_LINK;
-        break;
-    case S_IFIFO:
-        return FILE_TYPE_FIFO;
-        break;
-    default:
-        return FILE_TYPE_OTHER;
-        break;
-    }
+    return FileBase::GetFileType(fileheader);
 }
 
 bool FileBase::IsHardLink()
@@ -139,4 +122,26 @@ void FileBase::ReatoreMetadata()
     // 还原时间戳(访问时间 修改时间)
     timespec tim[2] = {metadata->st_atim, metadata->st_mtim};
     utimensat(AT_FDCWD, fileheader.name, tim, AT_SYMLINK_NOFOLLOW);
+}
+
+FileType FileBase::GetFileType(const FileHeader &file_header_)
+{
+    switch (file_header_.metadata.st_mode & S_IFMT)
+    {
+    case S_IFREG:
+        return FILE_TYPE_NORMAL;
+        break;
+    case S_IFDIR:
+        return FILE_TYPE_DIRECTORY;
+        break;
+    case S_IFLNK:
+        return FILE_TYPE_SYMBOLIC_LINK;
+        break;
+    case S_IFIFO:
+        return FILE_TYPE_FIFO;
+        break;
+    default:
+        return FILE_TYPE_OTHER;
+        break;
+    }
 }

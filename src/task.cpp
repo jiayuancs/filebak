@@ -175,17 +175,13 @@ bool Task::Restore(std::string password)
 
 bool Task::GetBackupInfo(std::string file_path_, BackupInfo &info_)
 {
-    // 判断路径是否存在
-    if (!std::filesystem::exists(file_path_))
+    FileBase file(file_path_);
+    if (file.OpenFile(std::ios::in | std::ios::binary))
     {
-        std::cout << "error: no such file or directory: " << file_path_ << std::endl;
-        return false;
+        info_ = file.ReadBackupInfo();
+        file.close();
+        return true;
     }
 
-    // 读取的备份信息
-    FileBase file(file_path_);
-    file.OpenFile(std::ios::in | std::ios::binary);
-    info_ = file.ReadBackupInfo();
-    file.close();
-    return true;
+    return false;
 }

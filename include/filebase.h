@@ -82,6 +82,8 @@ public:
 
     void ReatoreMetadata();
 
+    static FileType GetFileType(const FileHeader &file_header_);
+
     // 用于测试
     void printTime(std::string dec, const struct timespec &tim)
     {
