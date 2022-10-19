@@ -2,29 +2,11 @@
 
 ArgParser::ArgParser() : options("filebak", "A data backup software for Linux")
 {
-    options.add_options()
-    ("b,backup", "备份", cxxopts::value(flag_backup))
-    ("r,restore", "恢复", cxxopts::value(flag_restore))
-    ("l,list", "查看指定备份文件的信息", cxxopts::value(str_list))
-    ("v,verbose", "输出执行过程信息", cxxopts::value(flag_verbose))
-    ("i,input", "备份时指出备份路径,恢复时指定备份文件名", cxxopts::value(str_input))
-    ("o,output", "备份时指出备份文件名,恢复时指定输出路径", cxxopts::value(str_output))
-    ("p,password", "密码", cxxopts::value(str_password))
-    ("h,help", "Print usage", cxxopts::value(flag_help));
+    options.add_options()("b,backup", "备份", cxxopts::value(flag_backup))("r,restore", "恢复", cxxopts::value(flag_restore))("l,list", "查看指定备份文件的信息", cxxopts::value(str_list))("v,verbose", "输出执行过程信息", cxxopts::value(flag_verbose))("i,input", "备份时指出备份路径,恢复时指定备份文件名", cxxopts::value(str_input))("o,output", "备份时指出备份文件名,恢复时指定输出路径", cxxopts::value(str_output))("p,password", "密码", cxxopts::value(str_password))("h,help", "Print usage", cxxopts::value(flag_help));
 
-    options.add_options("Backup")
-    ("c,compress", "压缩", cxxopts::value(flag_compress))
-    ("e,encrypt", "加密", cxxopts::value(flag_encrypt))
-    ("path", "过滤路径 正则表达式", cxxopts::value(str_path))
-    ("type", "过滤文件类型: n普通文件,d目录文件,l符号链接,p管道文件", cxxopts::value(str_type))
-    ("name", "过滤文件名 正则表达式", cxxopts::value(str_name))
-    ("atime", "限制访问时间, 例\"2000-11-11 23:20:21 2022-10-11 20:10:51\"", cxxopts::value(str_atime))
-    ("mtime", "限制修改时间, 格式同atime", cxxopts::value(str_mtime))
-    ("ctime", "限制改变时间, 格式同atime", cxxopts::value(str_ctime))
-    ("m,message", "备份说明", cxxopts::value(str_message));
+    options.add_options("Backup")("c,compress", "压缩", cxxopts::value(flag_compress))("e,encrypt", "加密", cxxopts::value(flag_encrypt))("path", "过滤路径 正则表达式", cxxopts::value(str_path))("type", "过滤文件类型: n普通文件,d目录文件,l符号链接,p管道文件", cxxopts::value(str_type))("name", "过滤文件名 正则表达式", cxxopts::value(str_name))("atime", "限制访问时间, 例\"2000-11-11 23:20:21 2022-10-11 20:10:51\"", cxxopts::value(str_atime))("mtime", "限制修改时间, 格式同atime", cxxopts::value(str_mtime))("ctime", "限制改变时间, 格式同atime", cxxopts::value(str_ctime))("m,message", "备份说明", cxxopts::value(str_message));
 
-    options.add_options("Restore")
-    ("a,metadata", "恢复元数据", cxxopts::value(flag_metadata));
+    options.add_options("Restore")("a,metadata", "恢复元数据", cxxopts::value(flag_metadata));
 }
 
 ArgParser::~ArgParser()
@@ -80,6 +62,8 @@ bool ArgParser::Parse(int argc, char **argv)
         format_correct &= ConvertTime(str_mtime, mtime_start, mtime_end);
     if (flag_ctime)
         format_correct &= ConvertTime(str_ctime, ctime_start, ctime_end);
+    if (flag_backup && flag_password)
+        format_correct &= CheckPassword();
     format_correct &= CheckRegExp();
     if (!format_correct)
         return false;
@@ -104,6 +88,16 @@ bool ArgParser::Parse(int argc, char **argv)
 void ArgParser::PrintErrorInfo()
 {
     std::cout << "Try 'filebak --help' for more information." << std::endl;
+}
+
+bool ArgParser::CheckPassword()
+{
+    if (str_password.length() < 6)
+    {
+        std::cout << "error: 密码长度少于6位" << std::endl;
+        return false;
+    }
+    return true;
 }
 
 bool ArgParser::CheckRegExp()

@@ -124,21 +124,21 @@ bool Task::Restore(std::string password)
         return false;
     }
 
-    // 读取的备份信息
-    FileBase file(bak_path);
-    file.OpenFile(std::ios::in | std::ios::binary);
-    info = file.ReadBackupInfo();
-    file.close();
-
     if (info.mod & BACKUP_MOD_ENCRYPT)
     {
         if (verbose)
             std::cout << "--------------- DECRYPT ---------------" << std::endl;
         // 解密
         Aes aes(bak_path, password, verbose);
-        if (!aes.Decrypt())
+        int status = aes.Decrypt();
+        if (status == -2)
         {
             std::cout << "error: failed to decrypt file" << std::endl;
+            return false;
+        }
+        else if (status == -1)
+        {
+            std::cout << "error: wrong password" << std::endl;
             return false;
         }
         bak_path.replace_extension("");
@@ -155,7 +155,8 @@ bool Task::Restore(std::string password)
             std::cout << "error: failed to decompress file" << std::endl;
             return false;
         }
-        std::filesystem::remove_all(bak_path);
+        if (info.mod & BACKUP_MOD_ENCRYPT)
+            std::filesystem::remove_all(bak_path);
         bak_path.replace_extension("");
     }
 
@@ -168,9 +169,20 @@ bool Task::Restore(std::string password)
         std::cout << "error: failed to unpack file" << std::endl;
         return false;
     }
-    std::filesystem::remove_all(bak_path);
+    if (info.mod & BACKUP_MOD_COMPRESS)
+        std::filesystem::remove_all(bak_path);
 
     return true;
+}
+
+bool Task::GetBackupInfo()
+{
+    return Task::GetBackupInfo(this->bak_path, this->info);
+}
+
+unsigned char Task::GetBackupMode()
+{
+    return info.mod;
 }
 
 bool Task::GetBackupInfo(std::string file_path_, BackupInfo &info_)
@@ -182,6 +194,6 @@ bool Task::GetBackupInfo(std::string file_path_, BackupInfo &info_)
         file.close();
         return true;
     }
-
+    std::cout << "error: failed to get file information: " << file_path_ << std::endl;
     return false;
 }

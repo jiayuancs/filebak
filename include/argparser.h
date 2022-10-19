@@ -64,6 +64,8 @@ public:
     // 输出错误提示信息
     void PrintErrorInfo();
 
+    bool CheckPassword();
+
 private:
     // 参数格式检查
     bool CheckRegExp();

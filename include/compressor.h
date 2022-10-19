@@ -19,7 +19,7 @@ struct HuffNode
     struct HuffNode *right;
 };
 
-// priority_queue的比较函数 形成小根堆
+// priority_queue的比较函数 构造小根堆
 struct HuffNodeCmp
 {
     bool operator()(const HuffNode *a, const HuffNode *b)

@@ -28,7 +28,29 @@ int main(int argc, char **argv)
         if (parser.flag_compress)
             mod |= BACKUP_MOD_COMPRESS;
         if (parser.flag_encrypt)
+        {
             mod |= BACKUP_MOD_ENCRYPT;
+            if (!parser.flag_password)
+            {
+                std::string pwd1, pwd2;
+                std::cout << "Input password: ";
+                std::cin >> pwd1;
+                std::cout << "Input password again: ";
+                std::cin >> pwd2;
+                if (pwd1 != pwd2)
+                {
+                    std::cout << "error: passwords do not match" << std::endl;
+                    return -1;
+                }
+
+                parser.flag_password = true;
+                parser.str_password = pwd2;
+
+                if (!parser.CheckPassword())
+                    return -1;
+            }
+        }
+
         task.SetMod(mod);
         task.SetVerbose(parser.flag_verbose);
         task.SetComment(parser.str_message);
@@ -48,17 +70,26 @@ int main(int argc, char **argv)
             filter.SetChangeTime(parser.ctime_start, parser.ctime_end);
         task.SetFilter(filter);
 
-        task.Backup(parser.str_password);
+        if (!task.Backup(parser.str_password))
+            return -1;
     }
 
     // 恢复
     if (parser.flag_restore)
     {
         Task task(parser.str_output, parser.str_input);
+        if (!task.GetBackupInfo())
+            return -1;
+        if ((task.GetBackupMode() & BACKUP_MOD_ENCRYPT) && !parser.flag_password)
+        {
+            std::cout << "Input password: ";
+            std::cin >> parser.str_password;
+        }
         task.RestoreMetadata(parser.flag_metadata);
         task.UseOrignalPath(!parser.flag_output);
         task.SetVerbose(parser.flag_verbose);
-        task.Restore(parser.str_password);
+        if (!task.Restore(parser.str_password))
+            return -1;
     }
 
     // 显示备份文件信息

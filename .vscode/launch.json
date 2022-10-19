@@ -9,7 +9,24 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/filebak",
-            "args": [],
+            // "args": [
+            //     "-rv",
+            //     "-o",
+            //     "../bakfile/test",
+            //     "-i",
+            //     "../bakfile/testthis.pak.ept",
+            //     "-p",
+            //     "123456"
+            // ],
+            "args": [
+                "-bv",
+                "-i",
+                "../bakfile/test",
+                "-o",
+                "../bakfile/testthis",
+                "-ep",
+                "123456"
+            ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
@@ -23,13 +40,12 @@
                     "ignoreFailures": true
                 },
                 {
-                    "description":  "将反汇编风格设置为 Intel",
+                    "description": "将反汇编风格设置为 Intel",
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
             ],
             "preLaunchTask": "Build"
         }
-
     ]
 }

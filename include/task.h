@@ -24,18 +24,20 @@ public:
 
     void SetVerbose(bool verbose_);
 
-    // 备份时使用
+    // 备份
+    bool Backup(std::string password);
     void SetComment(std::string comment_);
     void SetMod(unsigned char mod_);
     void SetFilter(const Filter &filter_);
 
-    // 恢复时使用
+    // 恢复
+    bool Restore(std::string password);
     void RestoreMetadata(bool restore_metadata_);
     void UseOrignalPath(bool use_original_path_);
+    bool GetBackupInfo();
+    unsigned char GetBackupMode();
 
-    bool Backup(std::string password);
-    bool Restore(std::string password);
-
+    // 获取备份文件的基本信息
     static bool GetBackupInfo(std::string file_path_, BackupInfo &info_);
 };
 

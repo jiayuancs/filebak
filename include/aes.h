@@ -20,7 +20,10 @@ public:
     ~Aes();
 
     bool Encrypt();
-    bool Decrypt();
+
+    /// @brief 解密
+    /// @return 0成功 -1密码错误 -2文件错误
+    int Decrypt();
 };
 
 #endif // INCLUDE_AES_H_

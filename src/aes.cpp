@@ -23,6 +23,10 @@ bool Aes::Encrypt()
         return false;
     BackupInfo info = file_in.ReadBackupInfo();
 
+    char buf_in[AES_BLOCK_SIZE];
+    char buf_out[AES_BLOCK_SIZE];
+    unsigned char ivec[AES_BLOCK_SIZE] = {0}; // 初始化向量全0
+
     // 加密后的文件
     std::filesystem::path ept_path(file_path);
     ept_path += FILE_SUFFIX_ENCRYPT;
@@ -31,10 +35,11 @@ bool Aes::Encrypt()
         return false;
     file_out.WriteBackupInfo(info);
 
+    // 将密钥加密后写入文件
+    AES_cbc_encrypt(key, (unsigned char *)buf_out, AES_BLOCK_SIZE, &aes_key, ivec, AES_ENCRYPT);
+    file_out.write((const char *)buf_out, sizeof(buf_out));
+
     // 加密
-    char buf_in[AES_BLOCK_SIZE];
-    char buf_out[AES_BLOCK_SIZE];
-    unsigned char ivec[AES_BLOCK_SIZE] = {0}; // 初始化向量全0
     while (file_in.read(buf_in, AES_BLOCK_SIZE))
     {
         AES_cbc_encrypt((unsigned char *)buf_in, (unsigned char *)buf_out, AES_BLOCK_SIZE, &aes_key, ivec, AES_ENCRYPT);
@@ -51,10 +56,10 @@ bool Aes::Encrypt()
     return true;
 }
 
-bool Aes::Decrypt()
+int Aes::Decrypt()
 {
     if (file_path.extension() != FILE_SUFFIX_ENCRYPT)
-        return false;
+        return -2;
 
     AES_KEY aes_key;
     AES_set_decrypt_key(key, 128, &aes_key);
@@ -62,21 +67,30 @@ bool Aes::Decrypt()
     // 待解密的文件
     FileBase file_in(file_path);
     if (!file_in.OpenFile(std::ios::in | std::ios::binary))
-        return false;
+        return -2;
     BackupInfo info = file_in.ReadBackupInfo();
+
+    char buf_in[AES_BLOCK_SIZE];
+    char buf_out[AES_BLOCK_SIZE];
+    unsigned char ivec[AES_BLOCK_SIZE] = {0}; // 初始化向量全0
+
+    // 解密前16字节,验证密码是否正确
+    file_in.read(buf_in, AES_BLOCK_SIZE);
+    AES_cbc_encrypt((unsigned char *)buf_in, (unsigned char *)buf_out, AES_BLOCK_SIZE, &aes_key, ivec, AES_DECRYPT);
+    if (memcmp(key, buf_out, sizeof(key)) != 0)
+    {
+        return -1;
+    }
 
     // 解密后的文件
     std::filesystem::path dpt_path(file_path);
     dpt_path.replace_extension("");
     FileBase file_out(dpt_path);
     if (!file_out.OpenFile(std::ios::out | std::ios::binary | std::ios::trunc))
-        return false;
+        return -2;
     file_out.WriteBackupInfo(info);
 
     // 解密
-    char buf_in[AES_BLOCK_SIZE];
-    char buf_out[AES_BLOCK_SIZE];
-    unsigned char ivec[AES_BLOCK_SIZE] = {0}; // 初始化向量全0
     while (file_in.read(buf_in, AES_BLOCK_SIZE))
     {
         AES_cbc_encrypt((unsigned char *)buf_in, (unsigned char *)buf_out, AES_BLOCK_SIZE, &aes_key, ivec, AES_DECRYPT);
@@ -92,5 +106,5 @@ bool Aes::Decrypt()
 
     file_in.close();
     file_out.close();
-    return true;
+    return 0;
 }
