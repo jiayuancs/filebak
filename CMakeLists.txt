@@ -14,8 +14,10 @@ set(OPENSSL_USE_STATIC_LIBS TRUE)
 find_package(OpenSSL REQUIRED)
 
 # 编译选项
-add_compile_options(-Wall -std=c++17 -lcrypto)
-set(CMAKE_BUILD_TYPE Debug)
+add_compile_options(-w -std=c++17 -lcrypto)
+set(CMAKE_BUILD_TYPE Release)
 add_executable(${EXE_FILE_NAME} ${MAIN_FILE_PATH} ${SRC_FILES})
 
 target_link_libraries(${EXE_FILE_NAME} OpenSSL::Crypto)
+
+install(TARGETS ${EXE_FILE_NAME} DESTINATION bin)

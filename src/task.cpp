@@ -2,6 +2,8 @@
 
 Task::Task(std::string src_path_, std::string bak_path_)
 {
+    if(src_path_.length() == 0)
+        src_path_ = ".";
     src_path = std::filesystem::absolute(src_path_);
     bak_path = std::filesystem::absolute(bak_path_);
     memset(&info, 0, sizeof(info));

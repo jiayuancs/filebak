@@ -104,7 +104,9 @@ int main(int argc, char **argv)
             if (info.mod & BACKUP_MOD_ENCRYPT)
                 backup_mode += "encrypt";
             std::cout << "Backup path: " << info.backup_path << std::endl;
-            std::cout << "Backup Time: " << info.timestamp << std::endl;
+            char buf_time[100];
+            strftime(buf_time, sizeof(buf_time), "%Y-%m-%d %H:%M:%S", localtime(&info.timestamp));
+            std::cout << "Backup Time: " << buf_time << std::endl;
             std::cout << "Backup Mode: " << backup_mode << std::endl;
             std::cout << "Comment: " << info.comment << std::endl;
         }
