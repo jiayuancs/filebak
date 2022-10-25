@@ -13,7 +13,7 @@ int main()
 
     Task task2("/home/leo/code/vscode/test55", "/home/leo/code/vscode/filebak/bakfile/test.pak.cps.ept");
     task2.RestoreMetadata(true);
-    task2.UseOrignalPath(false);
+    task2.UseOriginalPath(false);
     task2.SetVerbose(false);
     cout << task2.Restore("123456") << endl;
 

@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        std::cout << "参数过少" << std::endl;
+        std::cout << "Usage: filebak [OPTION...]" << std::endl;
         std::cout << "Try 'filebak --help' for more information." << std::endl;
         return -1;
     }
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
             std::cin >> parser.str_password;
         }
         task.RestoreMetadata(parser.flag_metadata);
-        task.UseOrignalPath(!parser.flag_output);
+        task.UseOriginalPath(!parser.flag_output);
         task.SetVerbose(parser.flag_verbose);
         if (!task.Restore(parser.str_password))
             return -1;
@@ -112,7 +112,6 @@ int main(int argc, char **argv)
         }
         else
         {
-            std::cout << "error: no such file or directory: " << parser.str_list << std::endl;
             return -1;
         }
     }

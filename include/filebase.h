@@ -8,11 +8,11 @@
 #include <fstream>
 #include <filesystem>
 #include <fcntl.h>
-
 #include <iostream>
-#define MAX_PACK_PATH_LEN 256  // 最大路径长度
-#define BLOCK_BUFFER_SIZE 4096 // 读写文件的缓冲区大小
-#define BACKUP_COMMENT_SIZE 255
+
+#define MAX_PACK_PATH_LEN 256   // 最大路径长度
+#define BLOCK_BUFFER_SIZE 4096  // 读写文件的缓冲区大小
+#define BACKUP_COMMENT_SIZE 255 // 备份时的备注信息长度
 
 // 文件类型
 #define FILE_TYPE_NORMAL 1
@@ -30,18 +30,31 @@ typedef unsigned char FileType;
 
 struct BackupInfo
 {
-    std::time_t timestamp;               // 时间戳
+    time_t timestamp;               // 时间戳
+    uint32_t checksum;                   // 校验和
     char backup_path[MAX_PACK_PATH_LEN]; // 备份路径
     char comment[BACKUP_COMMENT_SIZE];   // 描述信息
     unsigned char mod;                   // 压缩、加密
-};
+
+    uint32_t CalcChecksum()
+    {
+        uint32_t *p = (uint32_t *)this;
+        int cnt = sizeof(BackupInfo) / 4;
+        uint32_t sum = 0;
+        for(int i=0;i<cnt;++i)
+        {
+            sum += *p;
+            p++;
+        }
+        return sum;
+    }
+}; // 528字节
 
 struct FileHeader
 {
     char name[MAX_PACK_PATH_LEN];
     struct stat metadata;
 
-    // 软链接路径 或 硬链接路径
     // 对于硬链接，只有其链接目标在备份文件范围内该项才有效
     char linkname[MAX_PACK_PATH_LEN];
 };
@@ -54,12 +67,10 @@ private:
     FileHeader fileheader;          // 文件元数据
     std::filesystem::path filepath; // 文件路径
 
-    bool flag_no_fileheader;
-
 public:
     // 传入文件元数据 创建文件
     FileBase(FileHeader fileheader_);
-    // 传入文件路径 打开文件
+    // 传入文件路径 获取文件元数据
     FileBase(std::filesystem::path filepath_);
     ~FileBase();
 
@@ -81,28 +92,6 @@ public:
 
     static FileType GetFileType(const FileHeader &file_header_);
 
-    // 用于测试
-    void printTime(std::string dec, const struct timespec &tim)
-    {
-        std::cout << dec << tim.tv_sec << " " << tim.tv_nsec << std::endl;
-    }
-    void printStat()
-    {
-        const struct stat &header = fileheader.metadata;
-        std::cout << "文件类别: " << header.st_mode << std::endl;
-        std::cout << "inode: " << header.st_ino << std::endl;
-        std::cout << "设备号码: " << header.st_dev << std::endl;
-        std::cout << "特殊设备号: " << header.st_rdev << std::endl;
-        std::cout << "文件连接数: " << header.st_nlink << std::endl;
-        std::cout << "文件所有者: " << header.st_uid << std::endl;
-        std::cout << "文件所有者对应的组: " << header.st_gid << std::endl;
-        std::cout << "文件对应的文件字节数: " << header.st_size << std::endl;  // 软连接即连接路径字符所占用的空间
-        std::cout << "IO一次读入的块大小: " << header.st_blksize << std::endl; // 可用于设置缓冲区大小
-        std::cout << "对应的512字节块数量: " << header.st_blocks << std::endl; // 不需要
-        printTime("上次访问:", header.st_atim);
-        printTime("上次修改:", header.st_mtim);
-        printTime("创建时间:", header.st_ctim);
-    }
 };
 
 #endif // INCLUDE_FILEBASE_H_

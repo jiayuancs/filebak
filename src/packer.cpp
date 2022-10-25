@@ -14,28 +14,32 @@ Packer::~Packer()
 
 void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
 {
-    if (verbose)
-        std::cout << cur_path.string() << std::endl;
-
     FileBase file(cur_path);
     FileHeader fileheader = file.GetFileHeader();
 
-    // 判断该文件是否满足过滤规则
-    if (!filter.check(fileheader))
+    // 判断该文件是否满足用户自定义的过滤规则
+    bool file_status = filter.Check(fileheader);
+    
+    // 输出遍历到的所有文件路径
+    if (verbose)
+        std::cout << cur_path.string() + "  " << file_status ? "True\n" : "False\n";
+    if(!file_status)
         return;
 
     // 处理硬链接
     if (file.IsHardLink())
     {
         if (inode_table.count(fileheader.metadata.st_ino))
-        { // 指向的inode已打包
+        {
+            // 指向的inode已打包,记录文件路径
             strcpy(fileheader.linkname, inode_table[fileheader.metadata.st_ino].c_str());
             bak_file.write((const char *)&fileheader, sizeof(fileheader));
             return;
         }
         else
-        {                                     // 指向的inode未打包
-            fileheader.metadata.st_nlink = 1; // 作为常规文件处理
+        {
+            // 指向的inode未打包,作为常规文件处理
+            fileheader.metadata.st_nlink = 1; 
             inode_table[fileheader.metadata.st_ino] = cur_path.string();
         }
     }
@@ -123,8 +127,6 @@ bool Packer::Unpack(bool restore_metadata, bool use_original_path)
         std::filesystem::create_directories(root_path);
         std::filesystem::current_path(root_path);
     }
-    if (verbose)
-        std::cout << "工作目录: " << std::filesystem::current_path() << std::endl;
 
     char buf[BLOCK_BUFFER_SIZE] = {0};
     FileHeader fileheader = {0};

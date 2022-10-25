@@ -39,7 +39,7 @@ public:
     void SetChangeTime(time_t ctime_start_, time_t ctime_end_);
 
     // 判定文件是否满足给定的过滤规则
-    bool check(const FileHeader &file_header_);
+    bool Check(const FileHeader &file_header_);
 };
 
 #endif // INCLUDE_FILTER_H_

@@ -1,11 +1,10 @@
 #include "aes.h"
 
-Aes::Aes(std::string file_path_, std::string password_, bool verbose_)
+Aes::Aes(std::string file_path_, std::string password_)
 {
     file_path.assign(file_path_);
     // 使用MD5将密码转换为128位密钥
     MD5((unsigned char *)(password_.c_str()), password_.length(), key);
-    verbose = verbose_;
 }
 
 Aes::~Aes()
@@ -56,6 +55,7 @@ bool Aes::Encrypt()
     return true;
 }
 
+// 0成功 -1密码错误 -2文件错误
 int Aes::Decrypt()
 {
     if (file_path.extension() != FILE_SUFFIX_ENCRYPT)

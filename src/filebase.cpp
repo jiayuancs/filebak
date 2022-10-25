@@ -4,7 +4,7 @@ FileBase::FileBase(FileHeader fileheader_)
 {
     this->fileheader = fileheader_;
     filepath.assign(fileheader.name);
-    flag_no_fileheader = false;
+
 
     if (IsHardLink())
     {
@@ -41,7 +41,6 @@ FileBase::FileBase(FileHeader fileheader_)
 FileBase::FileBase(std::filesystem::path filepath_)
 {
     filepath = filepath_;
-    flag_no_fileheader = true;
 
     memset(&fileheader, 0, sizeof(fileheader));
 
@@ -82,12 +81,17 @@ BackupInfo FileBase::ReadBackupInfo()
 }
 void FileBase::WriteBackupInfo(BackupInfo info)
 {
+    // 计算校验和
+    info.checksum = 0;
+    uint32_t sum = info.CalcChecksum();
+    info.checksum = (~sum) + 1;   // 按位取反后加1
+
     this->write((char *)&info, sizeof(info));
 }
 void FileBase::WriteBackupInfo()
 {
     BackupInfo info = {0};
-    this->write((char *)&info, sizeof(info));
+    WriteBackupInfo(info);
 }
 size_t FileBase::GetFileSize()
 {

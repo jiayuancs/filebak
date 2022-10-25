@@ -2,11 +2,28 @@
 
 ArgParser::ArgParser() : options("filebak", "A data backup software for Linux")
 {
-    options.add_options()("b,backup", "备份", cxxopts::value(flag_backup))("r,restore", "恢复", cxxopts::value(flag_restore))("l,list", "查看指定备份文件的信息", cxxopts::value(str_list))("v,verbose", "输出执行过程信息", cxxopts::value(flag_verbose))("i,input", "备份时指出备份路径,恢复时指定备份文件名", cxxopts::value(str_input))("o,output", "备份时指出备份文件名,恢复时指定输出路径", cxxopts::value(str_output))("p,password", "密码", cxxopts::value(str_password))("h,help", "Print usage", cxxopts::value(flag_help));
+    options.set_width(ARG_HELP_WIDTH).add_options()
+    ("b,backup", "恢复", cxxopts::value(flag_backup))
+    ("r,restore", "恢复", cxxopts::value(flag_restore))
+    ("l,list", "查看指定备份文件的信息", cxxopts::value(str_list))
+    ("v,verbose", "输出执行过程信息", cxxopts::value(flag_verbose))
+    ("i,input", "备份时指出备份路径,恢复时指定备份文件名", cxxopts::value(str_input))
+    ("o,output", "备份时指出备份文件名,恢复时指定输出路径", cxxopts::value(str_output))
+    ("p,password", "密码", cxxopts::value(str_password))
+    ("h,help", "Print usage", cxxopts::value(flag_help));
 
-    options.add_options("Backup")("c,compress", "压缩", cxxopts::value(flag_compress))("e,encrypt", "加密", cxxopts::value(flag_encrypt))("path", "过滤路径 正则表达式", cxxopts::value(str_path))("type", "过滤文件类型: n普通文件,d目录文件,l符号链接,p管道文件", cxxopts::value(str_type))("name", "过滤文件名 正则表达式", cxxopts::value(str_name))("atime", "限制访问时间, 例\"2000-11-11 23:20:21 2022-10-11 20:10:51\"", cxxopts::value(str_atime))("mtime", "限制修改时间, 格式同atime", cxxopts::value(str_mtime))("ctime", "限制改变时间, 格式同atime", cxxopts::value(str_ctime))("m,message", "备份说明", cxxopts::value(str_message));
+    options.set_width(ARG_HELP_WIDTH).add_options("Backup")
+    ("c,compress", "压缩", cxxopts::value(flag_compress))
+    ("e,encrypt", "加密", cxxopts::value(flag_encrypt))
+    ("path", "过滤路径 正则表达式", cxxopts::value(str_path))
+    ("type", "过滤文件类型: n普通文件,d目录文件,l符号链接,p管道文件", cxxopts::value(str_type))
+    ("name", "过滤文件名 正则表达式", cxxopts::value(str_name))
+    ("atime", "限制访问时间, 例\"2000-11-11 23:20:21 2022-10-11 20:10:51\"", cxxopts::value(str_atime))
+    ("mtime", "限制修改时间, 格式同atime", cxxopts::value(str_mtime))
+    ("ctime", "限制改变时间, 格式同atime", cxxopts::value(str_ctime))
+    ("m,message", "备份说明", cxxopts::value(str_message));
 
-    options.add_options("Restore")("a,metadata", "恢复元数据", cxxopts::value(flag_metadata));
+    options.set_width(ARG_HELP_WIDTH).add_options("Restore")("a,metadata", "恢复元数据", cxxopts::value(flag_metadata));
 }
 
 ArgParser::~ArgParser()
@@ -47,7 +64,7 @@ bool ArgParser::Parse(int argc, char **argv)
     bool format_correct = true;
     if (flag_backup + flag_restore + flag_list != 1)
     {
-        std::cout << "只能选择一个: backup restore list" << std::endl;
+        std::cout << "error: invalid parameter" << std::endl;
         return false;
     }
     if (flag_backup)
@@ -94,7 +111,7 @@ bool ArgParser::CheckPassword()
 {
     if (str_password.length() < 6)
     {
-        std::cout << "error: 密码长度少于6位" << std::endl;
+        std::cout << "error: password must be at least 6 characters in length" << std::endl;
         return false;
     }
     return true;
@@ -111,7 +128,8 @@ bool ArgParser::CheckRegExp()
     }
     catch (const std::exception &e)
     {
-        std::cout << "正则表达式有误" << std::endl;
+        std::cout << "error: invalid regular expression: ";
+        std::cout << e.what() << std::endl;
         return false;
     }
     return true;
@@ -121,12 +139,12 @@ bool ArgParser::CheckArgsBackup()
 {
     if (!flag_input || !flag_output)
     {
-        std::cout << "缺少输入输出: input output" << std::endl;
+        std::cout << "error: no input and output" << std::endl;
         return false;
     }
     if (!flag_encrypt && flag_password)
     {
-        std::cout << "加密请使用encrypt" << std::endl;
+        std::cout << "error: invalid parameter(using -e to encrypt)" << std::endl;
         return false;
     }
     return true;
@@ -136,12 +154,12 @@ bool ArgParser::CheckArgsRestore()
 {
     if (!flag_input)
     {
-        std::cout << "缺少输入: input" << std::endl;
+        std::cout << "error: no input" << std::endl;
         return false;
     }
     if (flag_compress || flag_encrypt || flag_path || flag_type || flag_name || flag_atime || flag_ctime || flag_mtime || flag_message)
     {
-        std::cout << "格式错误" << std::endl;
+        std::cout << "error: invalid parameter" << std::endl;
         return false;
     }
     return true;
@@ -151,7 +169,7 @@ bool ArgParser::CheckArgsList()
 {
     if (flag_compress || flag_encrypt || flag_path || flag_type || flag_name || flag_atime || flag_ctime || flag_mtime || flag_message || flag_metadata || flag_input || flag_output || flag_password)
     {
-        std::cout << "格式错误" << std::endl;
+        std::cout << "error: invalid parameter" << std::endl;
         return false;
     }
     return true;

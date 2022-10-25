@@ -45,7 +45,7 @@ void Task::RestoreMetadata(bool restore_metadata_)
 {
     restore_metadata = restore_metadata_;
 }
-void Task::UseOrignalPath(bool use_original_path_)
+void Task::UseOriginalPath(bool use_original_path_)
 {
     use_original_path = use_original_path_;
 }
@@ -69,7 +69,7 @@ bool Task::Backup(std::string password)
 
     // 打包
     if (verbose)
-        std::cout << "--------------- PACK ---------------" << std::endl;
+        std::cout << "PACKING..." << std::endl;
     Packer packer(src_path, bak_path, filter, verbose);
     if (!packer.Pack())
     {
@@ -81,9 +81,9 @@ bool Task::Backup(std::string password)
     if (info.mod & BACKUP_MOD_COMPRESS)
     {
         if (verbose)
-            std::cout << "--------------- COMPRESS ---------------" << std::endl;
+            std::cout << "COMPRESSING..." << std::endl;
         // 压缩
-        Compressor compressor(bak_path, verbose);
+        Compressor compressor(bak_path);
         if (!compressor.Compress())
         {
             std::cout << "error: failed to compress file" << std::endl;
@@ -96,9 +96,9 @@ bool Task::Backup(std::string password)
     if (info.mod & BACKUP_MOD_ENCRYPT)
     {
         if (verbose)
-            std::cout << "--------------- ENCRYPT ---------------" << std::endl;
+            std::cout << "ENCRYPTING..." << std::endl;
         // 加密
-        Aes aes(bak_path, password, verbose);
+        Aes aes(bak_path, password);
         if (!aes.Encrypt())
         {
             std::cout << "error: failed to encrpy file" << std::endl;
@@ -126,12 +126,13 @@ bool Task::Restore(std::string password)
         return false;
     }
 
+    // 解密
     if (info.mod & BACKUP_MOD_ENCRYPT)
     {
         if (verbose)
-            std::cout << "--------------- DECRYPT ---------------" << std::endl;
-        // 解密
-        Aes aes(bak_path, password, verbose);
+            std::cout << "DECRYPTING..." << std::endl;
+        
+        Aes aes(bak_path, password);
         int status = aes.Decrypt();
         if (status == -2)
         {
@@ -146,12 +147,13 @@ bool Task::Restore(std::string password)
         bak_path.replace_extension("");
     }
 
+    // 解压
     if (info.mod & BACKUP_MOD_COMPRESS)
     {
         if (verbose)
-            std::cout << "--------------- DECOMPRESS ---------------" << std::endl;
-        // 解压
-        Compressor compressor(bak_path, verbose);
+            std::cout << "DECOMPRESSING..." << std::endl;
+        
+        Compressor compressor(bak_path);
         if (!compressor.Decompress())
         {
             std::cout << "error: failed to decompress file" << std::endl;
@@ -164,7 +166,7 @@ bool Task::Restore(std::string password)
 
     // 解包
     if (verbose)
-        std::cout << "--------------- UNPACK ---------------" << std::endl;
+        std::cout << "UNPACKING..." << std::endl;
     Packer packer(src_path, bak_path, filter, verbose);
     if (!packer.Unpack(restore_metadata, use_original_path))
     {
@@ -193,9 +195,17 @@ bool Task::GetBackupInfo(std::string file_path_, BackupInfo &info_)
     if (file.OpenFile(std::ios::in | std::ios::binary))
     {
         info_ = file.ReadBackupInfo();
+
+        bool status = true;
+        if(info_.CalcChecksum() != 0)   // 文件校验失败
+        {
+            std::cout << "error: invalid file: " << file_path_ << std::endl;
+            status = false;
+        }
+
         file.close();
-        return true;
+        return status;
     }
-    std::cout << "error: failed to get file information: " << file_path_ << std::endl;
+    std::cout << "error: failed to open file: " << file_path_ << std::endl;
     return false;
 }

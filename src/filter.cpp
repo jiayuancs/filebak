@@ -44,7 +44,7 @@ void Filter::SetChangeTime(time_t ctime_start_, time_t ctime_end_)
     type |= FILTER_FILE_CHANGE_TIME;
 }
 
-bool Filter::check(const FileHeader &file_header_)
+bool Filter::Check(const FileHeader &file_header_)
 {
     FileType cur_file_type = FileBase::GetFileType(file_header_);
     // 路径匹配
