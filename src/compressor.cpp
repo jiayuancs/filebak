@@ -89,10 +89,18 @@ bool Compressor::Compress()
 
     // 统计词频
     memset(freq, 0, sizeof(freq));
-    unsigned char uchar;
-    while (file_in.read((char *)&uchar, sizeof(char)))
+    unsigned char buf_in[BLOCK_BUFFER_SIZE];
+    while (file_in.read((char *)&buf_in, sizeof(buf_in)))
     {
-        freq[uchar]++;
+        for (int i = 0; i < BLOCK_BUFFER_SIZE; ++i)
+        {
+            freq[buf_in[i]]++;
+        }
+    }
+
+    for (int i = 0; i < file_in.gcount(); ++i)
+    {
+        freq[buf_in[i]]++;
     }
 
     // 构建Huffman树,得到Huffman编码
@@ -109,11 +117,30 @@ bool Compressor::Compress()
 
     // 写入编码后的数据
     file_in.clear();
-    file_in.seekg(sizeof(info), std::ios::beg);     // 跳过备份信息头
-    std::string buf;
-    uchar = 0;
-    while (file_in.read((char *)&uchar, sizeof(uchar)))
+    file_in.seekg(sizeof(info), std::ios::beg); // 跳过备份信息头
+    std::string buf = "";
+
+    unsigned char buf_out[BLOCK_BUFFER_SIZE];
+    unsigned char uchar = 0;
+    while (file_in.read((char *)&buf_in, sizeof(buf_in)))
     {
+        for (int i = 0; i < BLOCK_BUFFER_SIZE; ++i)
+        {
+            uchar  = buf_in[i];
+            buf += code_map[uchar];
+            while (buf.length() >= 8)
+            {
+                std::bitset<8> bs(buf.substr(0, 8));
+                uchar = bs.to_ullong();
+                file_out.write((const char *)&uchar, sizeof(uchar));
+                buf = buf.substr(8);
+            }
+        }
+    }
+
+    for (int i = 0; i < file_in.gcount(); ++i)
+    {
+        uchar  = buf_in[i];
         buf += code_map[uchar];
         while (buf.length() >= 8)
         {
@@ -123,6 +150,7 @@ bool Compressor::Compress()
             buf = buf.substr(8);
         }
     }
+
     // 文件末尾补0，使文件大小是字节的整数倍
     padding_size = (8 - buf.length()) % 8;
     if (padding_size)
@@ -135,10 +163,34 @@ bool Compressor::Compress()
         uchar = bs.to_ulong();
         file_out.write((const char *)&uchar, sizeof(uchar));
     }
+    // unsigned char uchar = 0;
+    // while (file_in.read((char *)&uchar, sizeof(uchar)))
+    // {
+    //     buf += code_map[uchar];
+    //     while (buf.length() >= 8)
+    //     {
+    //         std::bitset<8> bs(buf.substr(0, 8));
+    //         uchar = bs.to_ulong();
+    //         file_out.write((const char *)&uchar, sizeof(uchar));
+    //         buf = buf.substr(8);
+    //     }
+    // }
+    // // 文件末尾补0，使文件大小是字节的整数倍
+    // padding_size = (8 - buf.length()) % 8;
+    // if (padding_size)
+    // {
+    //     for (int i = 0; i < padding_size; i++)
+    //     {
+    //         buf += "0";
+    //     }
+    //     std::bitset<8> bs(buf.substr(0, 8));
+    //     uchar = bs.to_ulong();
+    //     file_out.write((const char *)&uchar, sizeof(uchar));
+    // }
 
     // 记录补0的个数
     file_out.clear();
-    file_out.seekp(sizeof(info), std::ios::beg);     // 跳过备份信息头
+    file_out.seekp(sizeof(info), std::ios::beg); // 跳过备份信息头
     file_out.write((const char *)&padding_size, sizeof(padding_size));
 
     file_out.close();

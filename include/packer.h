@@ -27,9 +27,8 @@ public:
 
     /// @brief 解包
     /// @param restore_metadata true:恢复元数据
-    /// @param use_original_path true:按原路径恢复  false:恢复到root_path
     /// @return 解包成功返回true
-    bool Unpack(bool restore_metadata, bool use_original_path);
+    bool Unpack(bool restore_metadata);
 };
 
 #endif // INCLUDE_PACKER_H_

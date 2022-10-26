@@ -12,7 +12,6 @@ Task::Task(std::string src_path_, std::string bak_path_)
     memcpy(info.backup_path, src_path_.c_str(), std::min(src_path_.length(), sizeof(info.backup_path)));
 
     restore_metadata = false;
-    use_original_path = true;
     verbose = true;
 }
 
@@ -44,10 +43,6 @@ void Task::SetVerbose(bool verbose_)
 void Task::RestoreMetadata(bool restore_metadata_)
 {
     restore_metadata = restore_metadata_;
-}
-void Task::UseOriginalPath(bool use_original_path_)
-{
-    use_original_path = use_original_path_;
 }
 
 bool Task::Backup(std::string password)
@@ -168,7 +163,7 @@ bool Task::Restore(std::string password)
     if (verbose)
         std::cout << "UNPACKING..." << std::endl;
     Packer packer(src_path, bak_path, filter, verbose);
-    if (!packer.Unpack(restore_metadata, use_original_path))
+    if (!packer.Unpack(restore_metadata))
     {
         std::cout << "error: failed to unpack file" << std::endl;
         return false;

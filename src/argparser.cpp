@@ -139,7 +139,7 @@ bool ArgParser::CheckArgsBackup()
 {
     if (!flag_input || !flag_output)
     {
-        std::cout << "error: no input and output" << std::endl;
+        std::cout << "error: no input or output" << std::endl;
         return false;
     }
     if (!flag_encrypt && flag_password)
@@ -152,9 +152,9 @@ bool ArgParser::CheckArgsBackup()
 
 bool ArgParser::CheckArgsRestore()
 {
-    if (!flag_input)
+    if (!flag_input || !flag_output)
     {
-        std::cout << "error: no input" << std::endl;
+        std::cout << "error: no input or output" << std::endl;
         return false;
     }
     if (flag_compress || flag_encrypt || flag_path || flag_type || flag_name || flag_atime || flag_ctime || flag_mtime || flag_message)

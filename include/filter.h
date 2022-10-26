@@ -28,7 +28,6 @@ private:
 
 public:
     Filter();
-    Filter(const Filter &filter_);
     ~Filter();
 
     void SetPathFilter(std::string reg_path_);

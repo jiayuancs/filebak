@@ -19,12 +19,28 @@ void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
 
     // 判断该文件是否满足用户自定义的过滤规则
     bool file_status = filter.Check(fileheader);
-    
+
     // 输出遍历到的所有文件路径
     if (verbose)
-        std::cout << cur_path.string() + "  " << file_status ? "True\n" : "False\n";
-    if(!file_status)
+    {
+        std::cout << cur_path.string();
+        if (file_status)
+            std::cout << "  True" << std::endl;
+        else
+            std::cout << "  False" << std::endl;
+    }
+
+    if (!file_status)
+    {
+        if (file.GetFileType() == FILE_TYPE_DIRECTORY)
+        {
+            for (const auto &entry : std::filesystem::directory_iterator(cur_path))
+            {
+                DfsFile(bak_file, entry.path());
+            }
+        }
         return;
+    }
 
     // 处理硬链接
     if (file.IsHardLink())
@@ -39,7 +55,7 @@ void Packer::DfsFile(FileBase &bak_file, std::filesystem::path cur_path)
         else
         {
             // 指向的inode未打包,作为常规文件处理
-            fileheader.metadata.st_nlink = 1; 
+            fileheader.metadata.st_nlink = 1;
             inode_table[fileheader.metadata.st_ino] = cur_path.string();
         }
     }
@@ -103,7 +119,7 @@ bool Packer::Pack()
     return true;
 }
 
-bool Packer::Unpack(bool restore_metadata, bool use_original_path)
+bool Packer::Unpack(bool restore_metadata)
 {
     if (bak_path.extension() != FILE_SUFFIX_PACK)
         return false;
@@ -113,20 +129,11 @@ bool Packer::Unpack(bool restore_metadata, bool use_original_path)
 
     BackupInfo info = bak_file.ReadBackupInfo();
 
-    // 切换工作目录
-    if (use_original_path)
-    {
-        // 使用原路径
-        root_path.assign(info.backup_path);
-        std::filesystem::create_directories(root_path.parent_path());
-        std::filesystem::current_path(root_path.parent_path());
-    }
-    else
-    {
-        // 使用指定路径root_path
-        std::filesystem::create_directories(root_path);
-        std::filesystem::current_path(root_path);
-    }
+
+    // 使用指定路径root_path
+    std::filesystem::create_directories(root_path);
+    std::filesystem::current_path(root_path);
+
 
     char buf[BLOCK_BUFFER_SIZE] = {0};
     FileHeader fileheader = {0};

@@ -15,7 +15,6 @@ private:
     Filter filter;   // 用户自定义规则 过滤文件
 
     bool restore_metadata;  // 是否恢复文件元信息
-    bool use_original_path; // 是否将文件恢复到原来的位置
     bool verbose;           // 是否输出执行过程信息
 
 public:
@@ -33,7 +32,6 @@ public:
     // 恢复
     bool Restore(std::string password);
     void RestoreMetadata(bool restore_metadata_);
-    void UseOriginalPath(bool use_original_path_);
     bool GetBackupInfo();
     unsigned char GetBackupMode();
 

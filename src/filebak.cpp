@@ -72,6 +72,8 @@ int main(int argc, char **argv)
 
         if (!task.Backup(parser.str_password))
             return -1;
+        else
+            std::cout<<"Done"<<std::endl;
     }
 
     // 恢复
@@ -86,10 +88,11 @@ int main(int argc, char **argv)
             std::cin >> parser.str_password;
         }
         task.RestoreMetadata(parser.flag_metadata);
-        task.UseOriginalPath(!parser.flag_output);
         task.SetVerbose(parser.flag_verbose);
         if (!task.Restore(parser.str_password))
             return -1;
+        else
+            std::cout<<"Done"<<std::endl;
     }
 
     // 显示备份文件信息

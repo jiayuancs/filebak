@@ -57,7 +57,7 @@ bool Filter::Check(const FileHeader &file_header_)
             std::filesystem::path file_path(file_header_.name);
             dir_path = file_path.parent_path().string();
         }
-        if (!std::regex_match(dir_path, reg))
+        if (!std::regex_search(dir_path, reg))
         {
             return false;
         }
@@ -68,7 +68,7 @@ bool Filter::Check(const FileHeader &file_header_)
     {
         std::regex reg(reg_name);
         std::filesystem::path file_path(file_header_.name);
-        if (!std::regex_match(file_path.filename().string(), reg))
+        if (!std::regex_search(file_path.filename().string(), reg))
         {
             return false;
         }
