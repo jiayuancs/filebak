@@ -1,302 +1,127 @@
-# 数据备份软件
-
-软件开发综合实验-数据备份软件(filebak)
-
-[Google开源项目编程规范](https://zh-google-styleguide.readthedocs.io/en/latest/)
-
-## 实现功能
-
-- 数据备份
-
-- 数据还原
-
-- 文件类型支持
-  - 普通文件(r, regular)
-
-  - 目录文件(d, directory)
-
-  - 管道文件(f, FIFO)
-
-  - 链接文件(s, symbolic link)
-
-- 元数据支持
-
-- 自定义备份
-  - 路径
-
-  - 类型
-
-  - 名字
-
-  - 时间
-
-  - ~~定时~~
-
-- 压缩解压
-
-- 打包解包
-
-- 加密备份
-
-- ~~实时备份~~
-
-
-## 存在的问题
-1. 无法恢复文件夹的访问时间和修改时间：修改后程序仍可能访问该文件夹下的其他文件，导致时间变化
-   
-2. 压缩/解压效率低，压缩比低
-
+# 软件开发综合实验-数据备份软件(filebak)
 
 ## 开发环境
 
-操作系统：Ubuntu22.04 LTS
+- 操作系统：Ubuntu22.04 LTS
+- 开发工具：Visual Studio Code
+- g++ 11.3.0
+- cmake 3.22.1
+- OpenSSL 1.1.1n
 
-开发语言：C++
 
 
-环境配置
+## 编译安装
+
+### 方法一：cmake
+
+安装编译工具和依赖库
 ```shell
-# 安装openssl库
-sudo apt-get install libssl-dev
+apt install -y build-essential cmake libssl-dev
 ```
+切换到项目根目录下，依次执行如下命令
+```shell
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+```
+
+### 方法二：使用Dockerfile
+
+切换到项目根目录下，执行如下命令构建镜像
+
+```
+docker build -t filebak .
+```
+
+启动容器
+
+```
+docker run -it --name filebak_test filebak /bin/bash
+```
+
+
+
+## 实现的功能
+
+- 数据备份
+- 数据还原
+- 文件类型支持
+  - 普通文件
+
+  - 目录文件
+
+  - 管道文件
+
+  - 软链接文件
+
+  - 硬链接文件
+- 元数据支持
+- 自定义备份
+  - 路径
+  - 类型
+  - 名字
+  - 时间
+- 压缩解压
+- 打包解包
+- 加密备份
+
+
+
 
 
 ## 使用方法
 
 ```
-Usage:  filebak [OPTIONS] COMMAND
+Usage:
+  filebak [OPTION...]
 
-Options:
-    -v, --version   版本信息
-    -h, --help      帮助文档
+  -b, --backup        备份
+  -r, --restore       恢复
+  -l, --list arg      查看指定备份文件的信息
+  -v, --verbose       输出执行过程信息
+  -i, --input arg     程序输入文件路径
+  -o, --output arg    程序输出文件路径
+  -p, --password arg  指定密码
+  -h, --help          查看帮助文档
 
-Command:
-    backup          备份数据或设置定时备份任务
-    restore			恢复数据
-    info            输出备份任务的信息
-    stop            停止指定的备份任务
-    start           继续指定的备份任务
-    rm              删除指定的备份任务
+ Backup options:
+  -c, --compress     备份时压缩文件
+  -e, --encrypt      备份时加密文件
+      --path arg     过滤路径：正则表达式
+      --type arg     过滤文件类型: n普通文件,d目录文件,l符号链接,p管道 文件
+      --name arg     过滤文件名：正则表达式
+      --atime arg    文件的访问时间区间, 例"2000-11-11 23:20:21 2022-10-11 20:10:51"
+      --mtime arg    文件的修改时间区间, 格式同atime
+      --ctime arg    文件的改变时间区间, 格式同atime
+  -m, --message arg  添加备注信息
 
-Run 'filebak COMMAND --help' for more information on a command.
+ Restore options:
+  -a, --metadata  恢复文件的元数据
 ```
 
-### backup
+### 实例
+
+备份：将当前目录下的`myfile`目录树打包压缩备份到`bakdir`目录下，文件名为`mybak`
 
 ```
-Usage:  filebak backup <source_path> [OPTIONS] [<args>]
-
-设置备份任务
-
-Options:
-    # 元数据支持
-    -m --metadata 保留元数据
-
-    # 自定义备份
-    --filter    记录规则的文本文件
-    --path      正则表达式(仿照.gitignore)
-    --name      正则表达式
-    --type      普通文件(r, regular),目录文件(d, directory),
-                管道文件(f, FIFO),链接文件(s, symbolic link)
-    --time      "起始时间 终止时间"
-                备份给定时间区间内的文件
-    --task      "起始时间 终止时间 间隔"或"起始时间"
-
-    # 打包解包
-    始终打包，打包为.tar后缀
-
-    # 解压压缩
-    # -d --dcompress 	解压	解压xxxx.tar.cps文件
-    -c --compress 	压缩	压缩为.cps后缀的文件，即xxxx.tar.cps
-
-    # 加密解密
-    -p --password 	加密密码
-
-    # 实时备份
-    --auto-backup	感知文件变化，自动进行备份
-    
-    -o --out		输出文件路径
-
-    -m	--message	备份说明
-
-    -v	--verbose 显示指令执行过程
+filebak -bcv -i myfile -o bakdir/mybak
 ```
 
-### restore
+恢复：将`mybak.pak.cps`中的数据恢复到`restore_file`目录下
 
 ```
-Usage:  filebak restore <dir> <file> [[-p | --password] <args>]
-
-从备份文件中恢复数据
-
-dir		数据将恢复到该目录下
-file	备份的数据文件
--p, --password	如果备份时设置了加密，则需输入密码解密 
+filebak -rv -i mybak.pak.cps -o restore_file/
 ```
 
-> 当输入文件以`.tar.cps`结尾时，`restore`命令会自动解压该文件
-
-### info
+自定义备份：指定备份路径的正则表达式
 
 ```
-Usage:  filebak info [OPTIONS | task_id]
-
-显示任务简要信息,或查看给定任务的详细信息
-
-Options:
-    -a	--all	    显示所有任务(默认)
-    -s	--stop	    显示所有停止状态的任务
-    -f	--finished	所有完成的任务
-    -r	--running	正在运行的任务
-```
-简要信息输出格式
-
-| Task ID | Status                | 加密   | 定时任务 | 目录 | Comment |
-| :------ | --------------------- | ------ | -------- | ---- | ------- |
-| 任务ID  | Stop/Finished/Running | Yes/No | Yes/No   |      |         |
-
-详细信息输出格式：json
-
-### stop
-
-```
-Usage:  filebak stop [task_id]
-
-停止编号为task_id的备份任务
+filebak -bv -i myfile3 -o bakdir/myfile3 --path "^myfile3/test1/(1.txt|test4)"
 ```
 
-### start
+自定义备份：指定备份文件的修改时间范围
 
 ```
-Usage:  filebak start [task_id]
-
-继续编号为task_id的备份任务
+filebak -bv -i myfile6 -o bakdir/myfile6 --mtime "2022-10-24 12:00:00 2022-10-25 22:00:00"
 ```
-
-### rm
-
-```
-Usage:  filebak rm [task_id]
-
-删除编号为task_id的备份任务
-```
-
-
-
-## 需求分析
-
-### 用例图
-
-管理员
-
-- 创建备份任务
-  - 定时任务（扩展）
-  - 打包
-  - 加密
-  - 压缩
-
-- 还原数据
-  - 解密
-  - 解压
-
-- 管理备份任务
-  - 查看
-  - 停止
-  - 继续
-  - 删除
-
-<img src="images/use_case_diagram.png" alt="image-20221004000614297" style="zoom:67%;" />
-
-
-
-## 系统设计
-
-非定时任务直接执行，输出执行结果
-
-定时任务需要后台执行，记录执行日志
-
-### 数据结构
-
-| Name   | Description      |
-| ------ | ---------------- |
-| Task   | 备份任务         |
-| Inode  | i节点            |
-| Record | 打包文件中的记录 |
-
-
-
-### 类
-
-| Name        | Description                                                  |
-| ----------- | ------------------------------------------------------------ |
-| FileBase      | 文件读写 |
-| Filter      | 用户自定义的备份规则：文件路径、文件名、文件类型、时间区间等 |
-| Packer      | 用于打包/解包文件                                            |
-| Compressor  | 用于压缩/解压文件                                            |
-| AES         | 加解密                                                       |
-| Task        | 备份/还原任务                                                |
-| TaskManager | 任务管理：新建、停止、继续、删除等                           |
-
-#### 1. FileBase
-
-#### 2. Filter
-
-成员变量
-
-```
-rule_code	0001 0010 0100 1000
-path_rule	文件路径规则
-name_rule	文件名规则
-file_type	文件类型
-time_range	时间区间
-```
-
-成员函数
-
-```
-bool check()		判断文件是否满足用户自定义的规则
-```
-
-#### 3. Packer
-
-打包、解包
-
-#### 4. Compressor
-
-Huffman编码压缩、解压
-
-#### 5. AES
-
-加密、解密(OpenSSL)
-
-#### 6. Task
-
-备份/还原任务
-
-#### 7. TaskManager
-
-任务管理
-
-
-
-### 类图
-
->  访问属性
->
-> `-`private
->
-> `+`public
->
-> `#`protected
->
-> `~`package/default
-
-<img src="images/class_diagram.png" alt="image-20221004000614297" style="zoom:67%;" />
-
-
-
-### 顺序图
-
-
-
-### 构件图

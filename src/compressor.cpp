@@ -163,30 +163,6 @@ bool Compressor::Compress()
         uchar = bs.to_ulong();
         file_out.write((const char *)&uchar, sizeof(uchar));
     }
-    // unsigned char uchar = 0;
-    // while (file_in.read((char *)&uchar, sizeof(uchar)))
-    // {
-    //     buf += code_map[uchar];
-    //     while (buf.length() >= 8)
-    //     {
-    //         std::bitset<8> bs(buf.substr(0, 8));
-    //         uchar = bs.to_ulong();
-    //         file_out.write((const char *)&uchar, sizeof(uchar));
-    //         buf = buf.substr(8);
-    //     }
-    // }
-    // // 文件末尾补0，使文件大小是字节的整数倍
-    // padding_size = (8 - buf.length()) % 8;
-    // if (padding_size)
-    // {
-    //     for (int i = 0; i < padding_size; i++)
-    //     {
-    //         buf += "0";
-    //     }
-    //     std::bitset<8> bs(buf.substr(0, 8));
-    //     uchar = bs.to_ulong();
-    //     file_out.write((const char *)&uchar, sizeof(uchar));
-    // }
 
     // 记录补0的个数
     file_out.clear();
