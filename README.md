@@ -89,7 +89,7 @@ Usage:
   -c, --compress     备份时压缩文件
   -e, --encrypt      备份时加密文件
       --path arg     过滤路径：正则表达式
-      --type arg     过滤文件类型: n普通文件,d目录文件,l符号链接,p管道 文件
+      --type arg     过滤文件类型: n普通文件,d目录文件,l链接文件,p管道文件
       --name arg     过滤文件名：正则表达式
       --atime arg    文件的访问时间区间, 例"2000-11-11 23:20:21 2022-10-11 20:10:51"
       --mtime arg    文件的修改时间区间, 格式同atime
@@ -100,28 +100,78 @@ Usage:
   -a, --metadata  恢复文件的元数据
 ```
 
-### 实例
+> `test`文件夹下存放了测试用的文件
 
-备份：将当前目录下的`myfile`目录树打包压缩备份到`bakdir`目录下，文件名为`mybak`
-
+**查看帮助文档**
 ```
-filebak -bcv -i myfile -o bakdir/mybak
-```
-
-恢复：将`mybak.pak.cps`中的数据恢复到`restore_file`目录下
-
-```
-filebak -rv -i mybak.pak.cps -o restore_file/
+filebak -h
 ```
 
-自定义备份：指定备份路径的正则表达式
+**查看备份文件信息**
+```
+filebak -l filetest.pak.cps.ept
+```
+
+
+**普通备份(仅打包)**
+
+`-b`表示备份，
+`-v`表示输出备份过程信息
+`-m`用于给出备份说明信息
+
+```shell
+filebak -bv -i filetest -o bakdir/filetest -m "这里是备份说明"
+```
+
+**备份(启用压缩和加密)**
+
+`-c`表示对打包文件进行压缩，
+`-e`表示对文件进行加密，
+`-p`用于指定加密密码
+
+```shell
+filebak -bvce -i filetest -o bakdir/filetest -p 123456 
+```
+
+**自定义备份**
+
+`--path`指定**路径**的匹配规则(正则表达式)，
+下面的指令只备份`filetest/include`和`filetest/assets/images`两个目录树
 
 ```
-filebak -bv -i myfile3 -o bakdir/myfile3 --path "^myfile3/test1/(1.txt|test4)"
+filebak -bv -i filetest -o bakdir/filetest --path "^filetest/(include|(assets/images))"
 ```
 
-自定义备份：指定备份文件的修改时间范围
+`--name`指定**文件名**的匹配规则(正则表达式)，
+下面的指令只备份以`.h`或`.png`为后缀的文件
 
 ```
-filebak -bv -i myfile6 -o bakdir/myfile6 --mtime "2022-10-24 12:00:00 2022-10-25 22:00:00"
+filebak -bv -i filetest -o bakdir/filetest --name "\.(h|png)$"
 ```
+
+`--type`指定**文件类型**，`n`普通文件,`d`目录文件,`l`链接文件,`p`管道文件
+
+下面的指令只备份普通文件和链接文件
+
+```
+filebak -bv -i filetest -o bakdir/filetest --type "nl"
+```
+
+`--atime`,`--mtime`, `--ctime`分别用于指定**文件的时间戳范围**，
+下面的指令只备份在`2022-11-10 08:00:00`到`2022-11-18 22:00:00`之间修改过的文件
+```
+filebak -bv -i filetest -o bakdir/filetest --mtime "2022-11-10 08:00:00 2022-11-18 22:00:00"
+```
+
+**恢复文件**
+
+`-r`表示恢复文件，
+`-a`表示需要恢复文件元数据，
+`-i`指定备份文件，
+`-o`指定文件恢复到哪个位置
+`-p`用于指定解密用的密码
+
+```
+filebak -rva -i filetest.pak.cps.ept -o restore_file/ -p 123456
+```
+

@@ -1,7 +1,13 @@
-filetest.tar.gz是用于测试的文件，测试前先解压
+`filetest.tar.gz`是用于测试的文件，测试前先解压
+
+`filetest.pak.cps.ept`是使用`filebak`对测试文件进行加密压缩备份后得到的备份文件，其内容与`filetest.tar.gz`相同，解密密码为123456
 
 ```shell
 tar -zxvf filetest.tar.gz
+
+# 或
+
+filebak -rva -i filetest.pak.cps.ept -o . -p 123456
 ```
 
 测试文件的目录树结构
